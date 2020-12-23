@@ -36,9 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="RatLogo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="RatLogo.png" Pack="true" PackagePath="" />
   </ItemGroup>
-
 </Project>
