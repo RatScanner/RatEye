@@ -1,4 +1,4 @@
-name: CI
+name: RatEye - Publish to NuGet
 
 on:
   workflow_run:
