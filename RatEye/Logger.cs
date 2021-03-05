@@ -35,6 +35,11 @@ namespace RatEye
 			}
 		}
 
+		internal static void ShowMat(OpenCvSharp.Mat mat, string name = "")
+		{
+			new OpenCvSharp.Window(name, mat);
+		}
+
 		internal static void LogInfo(string message)
 		{
 			AppendToLog("[Info]  " + message);

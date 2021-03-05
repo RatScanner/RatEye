@@ -20,8 +20,10 @@ namespace RatEye.Processing
 		{
 			/// <summary>Unknown inspection type</summary>
 			Unknown,
+
 			/// <summary>When double clicking a item or clicking the inspect tooltip</summary>
 			Item,
+
 			/// <summary>When opening a container like a Keytool or a Scavbox</summary>
 			Container,
 		}
@@ -102,6 +104,7 @@ namespace RatEye.Processing
 		}
 
 		#region Processing state handling
+
 		private enum State
 		{
 			Default,
@@ -138,6 +141,7 @@ namespace RatEye.Processing
 				}
 			}
 		}
+
 		#endregion
 
 		/// <summary>
@@ -145,6 +149,8 @@ namespace RatEye.Processing
 		/// </summary>
 		private void SearchMarker()
 		{
+			SatisfyState(State.Default);
+
 			var item = GetMarkerPosition(InspectionConfig.GetScaledMarker(InspectionType.Item));
 			var container = GetMarkerPosition(InspectionConfig.GetScaledMarker(InspectionType.Container));
 
