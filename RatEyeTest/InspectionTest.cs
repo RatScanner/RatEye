@@ -44,7 +44,13 @@ namespace RatEyeTest
 			ConductTest(2f, image, inspType, 51, 38, title);
 		}
 
-		private static void ConductTest(float scale, Bitmap image, Inspection.InspectionType inspectionType, Int32 posX, int posY, string title)
+		private static void ConductTest(
+			float scale,
+			Bitmap image,
+			Inspection.InspectionType inspectionType,
+			Int32 posX,
+			int posY,
+			string title)
 		{
 			Config.Processing.Scale = scale;
 

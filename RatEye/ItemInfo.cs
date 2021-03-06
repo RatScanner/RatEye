@@ -55,6 +55,7 @@ namespace RatEye
 			{
 				return icon.Mods.SequenceEqual(Mods);
 			}
+
 			return true;
 		}
 	}

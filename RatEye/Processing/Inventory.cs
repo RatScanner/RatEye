@@ -29,6 +29,7 @@ namespace RatEye.Processing
 		private enum State
 		{
 			Default,
+
 			//Rescaled,
 			GridDetected,
 		}
@@ -118,14 +119,16 @@ namespace RatEye.Processing
 		/// <returns></returns>
 		private int FindGridEdgeDistance(Vector2 origin, Direction direction)
 		{
-			var maxSteps = direction switch {
+			var maxSteps = direction switch
+			{
 				Direction.North => origin.Y,
 				Direction.East => _grid.Width - origin.X,
 				Direction.South => _grid.Height - origin.Y,
 				Direction.West => origin.X,
 			};
 
-			var (xDiff, yDiff) = direction switch {
+			var (xDiff, yDiff) = direction switch
+			{
 				Direction.North => (0, -1),
 				Direction.East => (1, 0),
 				Direction.South => (0, 1),

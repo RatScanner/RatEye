@@ -7,9 +7,7 @@
 			/// <summary>
 			/// The Inventory class contains parameters, used by the inventory processing module.
 			/// </summary>
-			public static class Inventory
-			{
-			}
+			public static class Inventory { }
 		}
 	}
 }

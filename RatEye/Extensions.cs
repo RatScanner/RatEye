@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using Point = System.Drawing.Point;
@@ -57,6 +56,7 @@ namespace RatEye
 				g.Clear(target);
 				g.DrawImageUnscaledAndClipped(image, rect);
 			}
+
 			return output;
 		}
 
@@ -75,12 +75,14 @@ namespace RatEye
 		{
 			if (x < 0 || y < 0 || width < 0 || height < 0)
 			{
-				throw new ArgumentException("x, y, width and height accept non negative values only.");
+				const string message = "x, y, width and height accept non negative values only.";
+				throw new ArgumentException(message);
 			}
 
 			if (x + width > image.Width || y + height > image.Height)
 			{
-				throw new ArgumentOutOfRangeException(nameof(image), "The input image is not big enough for the desired crop");
+				const string message = "The input image is not big enough for the desired crop";
+				throw new ArgumentOutOfRangeException(nameof(image), message);
 			}
 
 			var rect = new Rectangle(x, y, width, height);
@@ -97,7 +99,12 @@ namespace RatEye
 		/// <param name="upperBoundColor">The upper bound matching color</param>
 		/// <param name="start">Start position for searching</param>
 		/// <returns>The horizontal position of the first matching pixel. -1 if no match was found</returns>
-		internal static int FindPixelInRange(this Bitmap image, int searchHeight, Color lowerBoundColor, Color upperBoundColor, int start = 0)
+		internal static int FindPixelInRange(
+			this Bitmap image,
+			int searchHeight,
+			Color lowerBoundColor,
+			Color upperBoundColor,
+			int start = 0)
 		{
 			var mat = image.ToMat();
 			var mat3 = new Mat<Vec3b>(mat);
@@ -113,6 +120,7 @@ namespace RatEye
 
 				return x;
 			}
+
 			return -1;
 		}
 	}

@@ -21,7 +21,7 @@ namespace RatEye
 		/// and especially items like screws, drill, wires, milk and so on.
 		/// <para/> Dictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;
 		/// </summary>
-		private static Dictionary<Size, Dictionary<string, Mat>> StaticIcons = new Dictionary<Size, Dictionary<string, Mat>>();
+		private static Dictionary<Size, Dictionary<string, Mat>> StaticIcons = new();
 
 		/// <summary>
 		/// Dynamic icons are those which need to be rendered at runtime
@@ -30,7 +30,7 @@ namespace RatEye
 		/// icon changes when you add rails, magazines, scopes and so on.
 		/// <para/> Dictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;
 		/// </summary>
-		private static Dictionary<Size, Dictionary<string, Mat>> DynamicIcons = new Dictionary<Size, Dictionary<string, Mat>>();
+		private static Dictionary<Size, Dictionary<string, Mat>> DynamicIcons = new();
 
 		/// <summary>
 		/// The data used to match icons to their uid's.
@@ -39,7 +39,7 @@ namespace RatEye
 		/// <remarks>
 		/// Keep this synchronized with <see cref="CorrelationDataInv"/>
 		/// </remarks>
-		private static readonly Dictionary<string, HashSet<ItemInfo>> CorrelationData = new Dictionary<string, HashSet<ItemInfo>>();
+		private static readonly Dictionary<string, HashSet<ItemInfo>> CorrelationData = new();
 
 		/// <summary>
 		/// The data used to match uid's to their icon.
@@ -49,13 +49,13 @@ namespace RatEye
 		/// <remarks>
 		/// Keep this synchronized with <see cref="CorrelationData"/>
 		/// </remarks>
-		private static readonly Dictionary<ItemInfo, string> CorrelationDataInv = new Dictionary<ItemInfo, string>();
+		private static readonly Dictionary<ItemInfo, string> CorrelationDataInv = new();
 
 		/// <summary>
 		/// The icon paths connected to each icon key
 		/// <para/> Dictionary&lt;iconKey, iconPath&gt;
 		/// </summary>
-		private static readonly Dictionary<string, string> IconPaths = new Dictionary<string, string>();
+		private static readonly Dictionary<string, string> IconPaths = new();
 
 		private const int RetryCount = 3;
 		private static int dynamicCorrelationDataHash;
@@ -103,6 +103,7 @@ namespace RatEye
 		}
 
 		#region Icon loading
+
 		private static void LoadStaticIcons()
 		{
 			Logger.LogInfo("Loading static icons...");
@@ -213,12 +214,15 @@ namespace RatEye
 					Thread.Sleep(100);
 					return LoadDynamicIcons(retryIndex);
 				}
+
 				return null;
 			}
 		}
+
 		#endregion
 
 		#region Correlation data loading
+
 		private static void LoadStaticCorrelationData()
 		{
 			Logger.LogInfo("Loading static correlation data...");
@@ -277,6 +281,7 @@ namespace RatEye
 					Logger.LogInfo("Dynamic correlation data already up to date");
 					return null;
 				}
+
 				dynamicCorrelationDataHash = hashCode;
 
 				// We did not parse it earlier so we will do now
@@ -312,6 +317,7 @@ namespace RatEye
 					Thread.Sleep(100);
 					return LoadDynamicCorrelationData(retryIndex);
 				}
+
 				return null;
 			}
 		}
@@ -426,6 +432,7 @@ namespace RatEye
 			{
 				throw new FileNotFoundException("Could not find icon cache folder", Config.Path.DynamicIcon);
 			}
+
 			return Directory.GetFiles(Config.Path.DynamicIcon, "*.png").Length;
 		}
 
@@ -445,6 +452,7 @@ namespace RatEye
 			{
 				Logger.LogWarning("Could not delete icon cache folder", e);
 			}
+
 			File.WriteAllText(Config.Path.DynamicCorrelation, "{}");
 		}
 

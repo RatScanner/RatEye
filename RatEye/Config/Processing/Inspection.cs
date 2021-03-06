@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using RatEye.Properties;
+using InspectionProcessing = RatEye.Processing.Inspection;
 
 namespace RatEye
 {
@@ -18,7 +18,7 @@ namespace RatEye
 				/// <summary>
 				/// Marker bitmap to identify regions of interest. This should be a cropped image of the magnifier icon
 				/// </summary>
-				public static Bitmap Marker = new Bitmap(new MemoryStream(Resources.searchIcon));
+				public static Bitmap Marker = new(new MemoryStream(Resources.searchIcon));
 
 				/// <summary>
 				/// Detection threshold of the marker bitmap
@@ -108,13 +108,13 @@ namespace RatEye
 				/// <param name="inspectionType">The inspection type, determining the final marker scale</param>
 				/// <remarks><see cref="Config.Processing.Scale"/> is already accounted for.</remarks>
 				/// <returns>A rescaled and alpha blended version of <see cref="Marker"/></returns>
-				internal static Bitmap GetScaledMarker(RatEye.Processing.Inspection.InspectionType inspectionType)
+				internal static Bitmap GetScaledMarker(InspectionProcessing.InspectionType inspectionType)
 				{
 					var markerScale = inspectionType switch
 					{
-						RatEye.Processing.Inspection.InspectionType.Item => MarkerItemScale,
-						RatEye.Processing.Inspection.InspectionType.Container => MarkerContainerScale,
-						RatEye.Processing.Inspection.InspectionType.Unknown => throw new InvalidOperationException(),
+						InspectionProcessing.InspectionType.Item => MarkerItemScale,
+						InspectionProcessing.InspectionType.Container => MarkerContainerScale,
+						InspectionProcessing.InspectionType.Unknown => throw new InvalidOperationException(),
 					};
 
 					var output = Marker.Rescale(markerScale * Scale);
@@ -127,7 +127,7 @@ namespace RatEye
 				/// </summary>
 				/// <param name="inspectionType"></param>
 				/// <returns></returns>
-				internal static int GetHorizontalTitleSearchOffset(RatEye.Processing.Inspection.InspectionType inspectionType)
+				internal static int GetHorizontalTitleSearchOffset(InspectionProcessing.InspectionType inspectionType)
 				{
 					var width = GetScaledMarker(inspectionType).Width;
 					return (int)(width * HorizontalTitleSearchOffsetFactor);
