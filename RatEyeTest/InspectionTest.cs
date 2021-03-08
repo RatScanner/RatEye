@@ -48,15 +48,25 @@ namespace RatEyeTest
 			float scale,
 			Bitmap image,
 			Inspection.InspectionType inspectionType,
-			Int32 posX,
+			int posX,
 			int posY,
 			string title)
 		{
-			Config.Processing.Scale = scale;
+			var overrideConfig = new Config()
+			{
+				ProcessingConfig = new Config.Processing()
+				{
+					Scale = scale,
+					InspectionConfig = new Config.Processing.Inspection()
+					{
+						MarkerThreshold = 0.99f
+					}
+				}
+			};
 
-			var inspection = new Inspection(image);
+			var inspection = new Inspection(image, overrideConfig);
 			Assert.True(inspection.ContainsMarker);
-			Assert.True(inspection.MarkerConfidence > Config.Processing.Inspection.MarkerThreshold);
+			Assert.InRange(inspection.MarkerConfidence, 0.99f, 1.0f);
 			Assert.Equal(inspectionType, inspection.DetectedInspectionType);
 			Assert.Equal(posX, inspection.MarkerPosition.X);
 			Assert.Equal(posY, inspection.MarkerPosition.Y);

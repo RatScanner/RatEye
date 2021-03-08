@@ -16,13 +16,17 @@ namespace RatEye
 		/// <param name="image">The image to be rescaled</param>
 		/// <param name="scale">Scale factor by which the dimensions will be multiplied</param>
 		/// <returns>The rescaled input image</returns>
+		/// <remarks>
+		/// Uses <see cref="InterpolationFlags.Area"/> for downscaling and <see cref="InterpolationFlags.Cubic"/> for upscaling
+		/// </remarks>
 		public static Bitmap Rescale(this Bitmap image, float scale)
 		{
 			if (scale == 1f) return image;
 
 			var mat = image.ToMat();
 			var rescaledSize = new Size((int)(mat.Width * scale), (int)(mat.Height * scale));
-			var rescaledMat = mat.Resize(rescaledSize, 0, 0, InterpolationFlags.Area);
+			var rescaleMode = scale < 1 ? InterpolationFlags.Area : InterpolationFlags.Cubic;
+			var rescaledMat = mat.Resize(rescaledSize, 0, 0, rescaleMode);
 			var rescaledImage = rescaledMat.ToBitmap();
 			return rescaledImage;
 		}
@@ -47,7 +51,7 @@ namespace RatEye
 		/// <param name="image">The input image</param>
 		/// <param name="target">The color which will replace the transparency</param>
 		/// <returns>The input image with replaced alpha in 24bppRgb format</returns>
-		public static Bitmap Transparent2Color(this Bitmap image, Color target)
+		public static Bitmap TransparentToColor(this Bitmap image, Color target)
 		{
 			var output = new Bitmap(image.Width, image.Height, PixelFormat.Format24bppRgb);
 			var rect = new Rectangle(Point.Empty, image.Size);

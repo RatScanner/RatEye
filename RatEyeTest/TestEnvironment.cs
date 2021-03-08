@@ -6,8 +6,7 @@ namespace RatEyeTest
 	{
 		public TestEnvironment()
 		{
-			var basePath = AppDomain.CurrentDomain.BaseDirectory;
-			RatEye.Config.LogDebug = true;
+			RatEye.Config.GlobalConfig.LogDebug = true;
 		}
 
 		/// <summary>

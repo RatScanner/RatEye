@@ -2,66 +2,108 @@
 
 namespace RatEye
 {
-	public static partial class Config
+	public partial class Config
 	{
 		/// <summary>
 		/// The Path class contains all paths used by library like the output
 		/// path for log files, folders containing icons for pattern matching etc.
 		/// </summary>
-		public static class Path
+		public class Path
 		{
 			/// <summary>
 			/// Base directory, which is used to create most other paths from.
 			/// Defaults to the base directory of the current app domain.
 			/// </summary>
-			private static string Base = AppDomain.CurrentDomain.BaseDirectory;
+			private string Base;
 
 			/// <summary>
 			/// Data directory, which is used to create some data related paths.
 			/// Defaults to <code>%Base%/Data</code>
 			/// </summary>
-			private static string Data = Combine(Base, "Data");
+			private string Data;
 
 			/// <summary>
-			/// Path of the folder containing static icons
+			/// Path of the folder containing icons
 			/// </summary>
-			public static string StaticIcon = Combine(Data, "name");
+			public string StaticIcon;
 
 			/// <summary>
 			/// Path of the folder containing dynamic icons
 			/// </summary>
-			public static string DynamicIcon = Combine(GetEfTTempPath(), "Icon Cache");
+			public string DynamicIcon;
 
 			/// <summary>
 			/// Path of the file containing correlation data for icons and uid's
 			/// </summary>
-			public static string StaticCorrelation = Combine(Data, "correlation.json");
+			public string StaticCorrelation;
 
 			/// <summary>
 			/// Path of the file containing correlation data for icons and uid's
 			/// </summary>
-			public static string DynamicCorrelation = Combine(DynamicIcon, "index.json");
+			public string DynamicCorrelation;
 
 			/// <summary>
 			/// Path of the icon to return when no icon matches the query
 			/// </summary>
-			public static string UnknownIcon = Combine(Data, "unknown.png");
+			public string UnknownIcon;
 
 			/// <summary>
 			/// Path to the folder containing the trained LSTM model of the "bender" font.
-			/// File has to be named "bender.traineddata".
 			/// </summary>
-			public static string BenderTraineddata = Data;
+			/// <remarks>File has to be named <c>"bender.traineddata"</c>.</remarks>
+			public string BenderTraineddata;
 
 			/// <summary>
 			/// Path of the debug folder which is used to store debug information
 			/// </summary>
-			public static string Debug = Combine(Base, "Debug");
+			public string Debug;
 
 			/// <summary>
 			/// Path of the log file
 			/// </summary>
-			public static string LogFile => Combine(Base, "Log.txt");
+			public string LogFile;
+
+			/// <summary>
+			/// Create a new path config instance based on the state of <see cref="Config.GlobalConfig"/>
+			/// </summary>
+			/// <param name="basedOnDefault">
+			/// Base the state on the default config rather then <see cref="Config.GlobalConfig"/>
+			/// </param>
+			public Path(bool basedOnDefault = false)
+			{
+				if (basedOnDefault)
+				{
+					SetDefaults();
+					return;
+				}
+
+				var globalConfig = GlobalConfig.PathConfig;
+
+				Base = globalConfig.Base;
+				Data = globalConfig.Data;
+				StaticIcon = globalConfig.StaticIcon;
+				DynamicIcon = globalConfig.DynamicIcon;
+				StaticCorrelation = globalConfig.StaticCorrelation;
+				DynamicCorrelation = globalConfig.DynamicCorrelation;
+				UnknownIcon = globalConfig.UnknownIcon;
+				BenderTraineddata = globalConfig.BenderTraineddata;
+				Debug = globalConfig.Debug;
+				LogFile = globalConfig.LogFile;
+			}
+
+			private void SetDefaults()
+			{
+				Base = AppDomain.CurrentDomain.BaseDirectory;
+				Data = Combine(Base, "Data");
+				StaticIcon = Combine(Data, "name");
+				DynamicIcon = Combine(GetEfTTempPath(), "Icon Cache");
+				StaticCorrelation = Combine(Data, "correlation.json");
+				DynamicCorrelation = Combine(DynamicIcon, "index.json");
+				UnknownIcon = Combine(Data, "unknown.png");
+				BenderTraineddata = Data;
+				Debug = Combine(Base, "Debug");
+				LogFile = Combine(Base, "Log.txt");
+			}
 
 			/// <summary>
 			/// Combine two paths
@@ -69,7 +111,7 @@ namespace RatEye
 			/// <param name="basePath">Base path</param>
 			/// <param name="x">Path to be added</param>
 			/// <returns>The combined path</returns>
-			private static string Combine(string basePath, string x)
+			private string Combine(string basePath, string x)
 			{
 				return System.IO.Path.Combine(basePath, x);
 			}
@@ -78,7 +120,7 @@ namespace RatEye
 			/// Get the directory used by eft for temporary files like the icon cache
 			/// </summary>
 			/// <returns>The directory used by eft for temporary files</returns>
-			private static string GetEfTTempPath()
+			private string GetEfTTempPath()
 			{
 				var eftTempDir = "Battlestate Games\\EscapeFromTarkov\\";
 				return Combine(System.IO.Path.GetTempPath(), eftTempDir);

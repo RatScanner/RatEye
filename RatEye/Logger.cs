@@ -16,22 +16,22 @@ namespace RatEye
 
 		internal static void LogDebug(string message)
 		{
-			if (Config.LogDebug) AppendToLog("[Debug] " + message);
+			if (Config.GlobalConfig.LogDebug) AppendToLog("[Debug] " + message);
 		}
 
 		internal static void LogDebugBitmap(Bitmap bitmap, string fileName = "bitmap")
 		{
-			if (Config.LogDebug)
+			if (Config.GlobalConfig.LogDebug)
 			{
-				bitmap.Save(GetUniquePath(Config.Path.Debug, fileName, ".png"));
+				bitmap.Save(GetUniquePath(Config.GlobalConfig.PathConfig.Debug, fileName, ".png"));
 			}
 		}
 
 		internal static void LogDebugMat(OpenCvSharp.Mat mat, string fileName = "mat")
 		{
-			if (Config.LogDebug)
+			if (Config.GlobalConfig.LogDebug)
 			{
-				mat.SaveImage(GetUniquePath(Config.Path.Debug, fileName, ".png"));
+				mat.SaveImage(GetUniquePath(Config.GlobalConfig.PathConfig.Debug, fileName, ".png"));
 			}
 		}
 
@@ -80,9 +80,9 @@ namespace RatEye
 		/// </summary>
 		public static void ClearDebugImages()
 		{
-			if (!Directory.Exists(Config.Path.Debug)) return;
+			if (!Directory.Exists(Config.GlobalConfig.PathConfig.Debug)) return;
 
-			var files = Directory.GetFiles(Config.Path.Debug, "*.png");
+			var files = Directory.GetFiles(Config.GlobalConfig.PathConfig.Debug, "*.png");
 			foreach (var file in files)
 			{
 				File.Delete(file);
@@ -94,12 +94,12 @@ namespace RatEye
 			fileName = fileName.Replace(' ', '_');
 
 			var index = 0;
-			var uniquePath = Path.Combine(basePath, fileName + index + extension);
+			var uniquePath = Path.Combine(basePath, fileName + "(" + index + ")" + extension);
 
 			while (File.Exists(uniquePath))
 			{
 				index += 1;
-				uniquePath = Path.Combine(basePath, fileName + index + extension);
+				uniquePath = Path.Combine(basePath, fileName + "(" + index + ")" + extension);
 			}
 
 			Directory.CreateDirectory(Path.GetDirectoryName(uniquePath));
@@ -111,7 +111,7 @@ namespace RatEye
 		/// </summary>
 		public static void Clear()
 		{
-			File.Delete(Config.Path.LogFile);
+			File.Delete(Config.GlobalConfig.PathConfig.LogFile);
 		}
 
 		private static void AppendToLog(string content)
@@ -136,7 +136,7 @@ namespace RatEye
 		private static void AppendToLogRaw(string text)
 		{
 			System.Diagnostics.Debug.WriteLine(text);
-			File.AppendAllText(Config.Path.LogFile, text, Encoding.UTF8);
+			File.AppendAllText(Config.GlobalConfig.PathConfig.LogFile, text, Encoding.UTF8);
 		}
 
 		private static void ProcessBacklog()

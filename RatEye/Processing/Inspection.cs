@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Runtime.InteropServices;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using OpenCvSharp.Text;
-using InspectionConfig = RatEye.Config.Processing.Inspection;
 
 namespace RatEye.Processing
 {
 	public class Inspection
 	{
-		private Bitmap _image;
+		private readonly Config _config;
+		private readonly Bitmap _image;
 		private static OCRTesseract tesseractInstance;
+
+		private Config.Path PathConfig => _config.PathConfig;
+		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
+		private Config.Processing.Inspection InspectionConfig => ProcessingConfig.InspectionConfig;
 
 		/// <summary>
 		/// Inspection window variants
@@ -31,7 +36,7 @@ namespace RatEye.Processing
 		// Backing property fields
 		private InspectionType _detectedInspectionType = InspectionType.Unknown;
 		private Vector2 _markerPosition;
-		private float _markerConfidence = 0f;
+		private float _markerConfidence;
 		private string _title = "";
 
 		/// <summary>
@@ -75,9 +80,9 @@ namespace RatEye.Processing
 		}
 
 		/// <summary>
-		/// True if the provided image contains a marker
+		/// <see langword="true"/> if the provided image contains a marker above the threshold
 		/// </summary>
-		public bool ContainsMarker => MarkerPosition != null;
+		public bool ContainsMarker => MarkerConfidence >= InspectionConfig.MarkerThreshold;
 
 		/// <summary>
 		/// Title of the inspection window
@@ -97,9 +102,11 @@ namespace RatEye.Processing
 		/// Constructor for inspection view processing object
 		/// </summary>
 		/// <param name="image">Image of the inspection view which will be processed</param>
+		/// /// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
 		/// <remarks>Provided image has to be in RGB</remarks>
-		public Inspection(Bitmap image)
+		public Inspection(Bitmap image, Config overrideConfig = null)
 		{
+			_config = overrideConfig ?? Config.GlobalConfig;
 			_image = image;
 		}
 
@@ -120,7 +127,7 @@ namespace RatEye.Processing
 			{
 				try
 				{
-					switch (++_currentState)
+					switch (_currentState + 1)
 					{
 						case State.Default:
 							break;
@@ -133,6 +140,8 @@ namespace RatEye.Processing
 						default:
 							throw new Exception("Cannot satisfy unknown state.");
 					}
+
+					_currentState++;
 				}
 				catch (Exception e)
 				{
@@ -151,8 +160,8 @@ namespace RatEye.Processing
 		{
 			SatisfyState(State.Default);
 
-			var item = GetMarkerPosition(InspectionConfig.GetScaledMarker(InspectionType.Item));
-			var container = GetMarkerPosition(InspectionConfig.GetScaledMarker(InspectionType.Container));
+			var item = GetMarkerPosition(GetScaledMarker(InspectionType.Item));
+			var container = GetMarkerPosition(GetScaledMarker(InspectionType.Container));
 
 			if (item.confidence > container.confidence)
 			{
@@ -203,24 +212,28 @@ namespace RatEye.Processing
 
 			// Compute title search box dimensions
 			var position = MarkerPosition;
-			position.X += InspectionConfig.GetHorizontalTitleSearchOffset(DetectedInspectionType);
+			position.X += GetHorizontalTitleSearchOffset(DetectedInspectionType);
 
 			// Find end of the title bar
-			var scaledMarker = InspectionConfig.GetScaledMarker(DetectedInspectionType);
+			var scaledMarker = GetScaledMarker(DetectedInspectionType);
 			var closeBtnCenterHeight = MarkerPosition.Y + (scaledMarker.Height / 2);
 			var lowC = InspectionConfig.CloseButtonColorLowerBound;
 			var upC = InspectionConfig.CloseButtonColorUpperBound;
 			var closeButtonPosition = _image.FindPixelInRange(closeBtnCenterHeight, lowC, upC, position.X);
 
 			// Construct final search box dimensions
-			var height = Math.Min(InspectionConfig.ScaledTitleSearchHeight, _image.Height - position.Y);
-			var width = Math.Min(InspectionConfig.ScaledTitleSearchWidth, _image.Width - position.X);
+			var scaledTitleSearchHeight = (int)(InspectionConfig.BaseTitleSearchHeight * ProcessingConfig.Scale);
+			var scaledTitleSearchWidth = (int)(InspectionConfig.BaseTitleSearchWidth * ProcessingConfig.Scale);
+			var height = Math.Min(scaledTitleSearchHeight, _image.Height - position.Y);
+			var width = Math.Min(scaledTitleSearchWidth, _image.Width - position.X);
 			if (closeButtonPosition > 0)
 			{
 				// Calculate width of search box to the close button edge
 				var tmpWidth = closeButtonPosition - position.X;
 				// Shorten the width to account for extra buttons ( for example sort buttons )
-				tmpWidth -= InspectionConfig.ScaledTitleSearchRightPadding;
+				var titleSearchRightPadding =
+					(int)(InspectionConfig.BaseTitleSearchRightPadding * ProcessingConfig.Scale);
+				tmpWidth -= titleSearchRightPadding;
 				// Apply new width if its the new minimum width
 				width = Math.Min(width, tmpWidth);
 			}
@@ -230,7 +243,7 @@ namespace RatEye.Processing
 
 			// Rescale title search box to 4k, adjusting the font size to the training data
 			// We multiply the inverse scale with 2f to rescale to 4k instead of 1080p
-			var rescaledSearchBox = searchBox.Rescale(Config.Processing.InverseScale * 2f);
+			var rescaledSearchBox = searchBox.Rescale(ProcessingConfig.InverseScale * 2f);
 
 			Title = OCR(rescaledSearchBox);
 		}
@@ -267,16 +280,17 @@ namespace RatEye.Processing
 		/// Creates an instance of the OCRTesseract class. Initializes Tesseract.
 		/// </summary>
 		/// <returns>Tesseract instance trained for the bender font</returns>
-		private static OCRTesseract GetTesseractInstance()
+		private OCRTesseract GetTesseractInstance()
 		{
+			// Return if tesseract instance was already created
 			if (tesseractInstance != null) return tesseractInstance;
 
-			// Check if traineddata is present
-			var traineddataPath = Path.Combine(Config.Path.BenderTraineddata, "bender.traineddata");
+			// Check if trained data is present
+			var traineddataPath = Path.Combine(PathConfig.BenderTraineddata, "bender.traineddata");
 			if (!File.Exists(traineddataPath))
 			{
 				var message = "Could not find traineddata at: " + traineddataPath;
-				var ex = new ArgumentException(message, Config.Path.BenderTraineddata);
+				var ex = new ArgumentException(message, PathConfig.BenderTraineddata);
 				Logger.LogError(ex);
 				throw ex;
 			}
@@ -284,7 +298,7 @@ namespace RatEye.Processing
 			// Create a tesseract instance
 			try
 			{
-				var datapath = Config.Path.BenderTraineddata;
+				var datapath = PathConfig.BenderTraineddata;
 				var language = "bender";
 
 				tesseractInstance = OCRTesseract.Create(datapath, language, null, 3, 7);
@@ -296,6 +310,38 @@ namespace RatEye.Processing
 			}
 
 			return tesseractInstance;
+		}
+
+		/// <summary>
+		/// Generate a marker bitmap based on the inspection type
+		/// </summary>
+		/// <param name="inspectionType">The inspection type, determining the final marker scale</param>
+		/// <remarks><see cref="Config.Processing.Scale"/> is already accounted for.</remarks>
+		/// <returns>A rescaled and alpha blended version of <see cref="Config.Processing.Inspection.Marker"/></returns>
+		private Bitmap GetScaledMarker(InspectionType inspectionType)
+		{
+			var markerScale = inspectionType switch
+			{
+				InspectionType.Item => InspectionConfig.MarkerItemScale,
+				InspectionType.Container => InspectionConfig.MarkerContainerScale,
+				InspectionType.Unknown => throw new InvalidOperationException(),
+				_ => throw new ArgumentOutOfRangeException(nameof(inspectionType), inspectionType, null)
+			};
+
+			var output = InspectionConfig.Marker.Rescale(markerScale * ProcessingConfig.Scale);
+			return output.TransparentToColor(InspectionConfig.MarkerBackgroundColor);
+		}
+
+		/// <summary>
+		/// Scaled horizontal offset of the inspection window title search box
+		/// <para>See <see cref="Config.Processing.Inspection.HorizontalTitleSearchOffsetFactor"/>.</para>
+		/// </summary>
+		/// <param name="inspectionType"></param>
+		/// <returns>The distance between the right edge of the marker and the beginning of the title search box</returns>
+		private int GetHorizontalTitleSearchOffset(InspectionType inspectionType)
+		{
+			var width = GetScaledMarker(inspectionType).Width;
+			return (int)(width * InspectionConfig.HorizontalTitleSearchOffsetFactor);
 		}
 	}
 }

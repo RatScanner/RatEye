@@ -6,8 +6,11 @@ namespace RatEye.Processing
 {
 	public class Inventory
 	{
+		private readonly Config _config;
 		private Mat _image;
 		private Mat _grid;
+
+		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
 
 		private enum Direction
 		{
@@ -21,8 +24,10 @@ namespace RatEye.Processing
 		/// Constructor for inventory view processing object
 		/// </summary>
 		/// <param name="image">Image of the inventory which will be processed</param>
-		public Inventory(System.Drawing.Bitmap image)
+		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
+		public Inventory(System.Drawing.Bitmap image, Config overrideConfig = null)
 		{
+			_config = overrideConfig ?? Config.GlobalConfig;
 			_image = image.ToMat();
 		}
 
@@ -42,7 +47,7 @@ namespace RatEye.Processing
 			{
 				try
 				{
-					switch (++_currentState)
+					switch (_currentState + 1)
 					{
 						case State.Default:
 							break;
@@ -55,6 +60,8 @@ namespace RatEye.Processing
 						default:
 							throw new Exception("Cannot satisfy unknown state.");
 					}
+
+					_currentState++;
 				}
 				catch (Exception e)
 				{
@@ -75,7 +82,7 @@ namespace RatEye.Processing
 
 			var colorFilter = _image.InRange(new Scalar(84, 81, 73), new Scalar(108, 117, 112));
 
-			var scaledSlotSize = Config.Processing.ScaledSlotSize;
+			var scaledSlotSize = ProcessingConfig.ScaledSlotSize;
 
 			var lineStructure = Mat.Ones(MatType.CV_8U, new[] { (int)(scaledSlotSize), 1 });
 

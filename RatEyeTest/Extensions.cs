@@ -6,13 +6,15 @@ namespace RatEyeTest
 	{
 		public static float NormedLevenshteinDistance(this string source, string target)
 		{
-			if (string.IsNullOrEmpty(source)) {
+			if (string.IsNullOrEmpty(source))
+			{
 				return string.IsNullOrEmpty(target) ? 0 : target.Length;
 			}
 
 			if (string.IsNullOrEmpty(target)) return source.Length;
 
-			if (source.Length > target.Length) {
+			if (source.Length > target.Length)
+			{
 				var temp = target;
 				target = source;
 				source = temp;
@@ -25,11 +27,13 @@ namespace RatEyeTest
 			for (var j = 1; j <= m; j++) distance[0, j] = j;
 
 			var currentRow = 0;
-			for (var i = 1; i <= n; ++i) {
+			for (var i = 1; i <= n; ++i)
+			{
 				currentRow = i & 1;
 				distance[currentRow, 0] = i;
 				var previousRow = currentRow ^ 1;
-				for (var j = 1; j <= m; j++) {
+				for (var j = 1; j <= m; j++)
+				{
 					var cost = (target[j - 1] == source[i - 1] ? 0 : 1);
 					distance[currentRow, j] = Math.Min(Math.Min(
 							distance[previousRow, j] + 1,

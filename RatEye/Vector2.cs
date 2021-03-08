@@ -1,6 +1,8 @@
-﻿namespace RatEye
+﻿using System;
+
+namespace RatEye
 {
-	public class Vector2
+	public class Vector2 : IEquatable<Vector2>
 	{
 		public int X;
 		public int Y;
@@ -80,6 +82,13 @@
 		public static Vector2 operator /(Vector2 a, int b)
 		{
 			return new Vector2(a.X / b, a.Y / b);
+		}
+
+		public bool Equals(Vector2 other)
+		{
+			if (other == null) return false;
+			if (this == other) return true;
+			return X == other.X && Y == other.Y;
 		}
 
 		public override string ToString()

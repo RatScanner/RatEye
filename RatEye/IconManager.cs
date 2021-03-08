@@ -10,9 +10,13 @@ using Size = System.Drawing.Size;
 
 namespace RatEye
 {
-	// TODO make non static and depend on config.processing.icon for paths
+	// TODO make non static and add possibility of override config
 	public static class IconManager
 	{
+		private static Config.Path PathConfig => Config.GlobalConfig.PathConfig;
+		private static Config.Processing ProcessingConfig => Config.GlobalConfig.ProcessingConfig;
+		private static Config.Processing.Icon IconConfig => ProcessingConfig.IconConfig;
+
 		private const int SlotSize = 63;
 
 		/// <summary>
@@ -95,7 +99,7 @@ namespace RatEye
 			LoadStaticCorrelationData();
 			InverseCorrelationData();
 
-			if (Config.Processing.Icon.UseDynamicIcons)
+			if (IconConfig.UseDynamicIcons)
 			{
 				OnDynamicCorrelationDataChange(null, null);
 				InitFileWatcher();
@@ -107,15 +111,15 @@ namespace RatEye
 		private static void LoadStaticIcons()
 		{
 			Logger.LogInfo("Loading static icons...");
-			if (!Directory.Exists(Config.Path.StaticIcon))
+			if (!Directory.Exists(PathConfig.StaticIcon))
 			{
-				var message = "Could not find icon folder at: " + Config.Path.StaticIcon;
-				var ex = new ArgumentException(message, Config.Path.StaticIcon);
+				var message = "Could not find icon folder at: " + PathConfig.StaticIcon;
+				var ex = new ArgumentException(message, PathConfig.StaticIcon);
 				Logger.LogError(ex);
 				throw ex;
 			}
 
-			var iconPathArray = Directory.GetFiles(Config.Path.StaticIcon, "*.png");
+			var iconPathArray = Directory.GetFiles(PathConfig.StaticIcon, "*.png");
 
 			var loadedIcons = 0;
 			var totalIcons = iconPathArray.Length;
@@ -157,17 +161,17 @@ namespace RatEye
 			Logger.LogInfo("Loading dynamic icons...");
 			var newDynamicIcons = new Dictionary<Size, Dictionary<string, Mat>>();
 
-			if (!Directory.Exists(Config.Path.DynamicIcon))
+			if (!Directory.Exists(PathConfig.DynamicIcon))
 			{
-				var message = "Could not find icon cache folder at: " + Config.Path.DynamicIcon;
-				var ex = new ArgumentException(message, Config.Path.DynamicIcon);
+				var message = "Could not find icon cache folder at: " + PathConfig.DynamicIcon;
+				var ex = new ArgumentException(message, PathConfig.DynamicIcon);
 				Logger.LogError(ex);
 				throw ex;
 			}
 
 			try
 			{
-				var iconPathArray = Directory.GetFiles(Config.Path.DynamicIcon, "*.png");
+				var iconPathArray = Directory.GetFiles(PathConfig.DynamicIcon, "*.png");
 
 				var loadedIcons = 0;
 				var totalIcons = iconPathArray.Length;
@@ -227,15 +231,15 @@ namespace RatEye
 		{
 			Logger.LogInfo("Loading static correlation data...");
 
-			if (!File.Exists(Config.Path.StaticCorrelation))
+			if (!File.Exists(PathConfig.StaticCorrelation))
 			{
-				var message = "Could not find static correlation data at: " + Config.Path.StaticCorrelation;
-				var ex = new ArgumentException(message, Config.Path.StaticCorrelation);
+				var message = "Could not find static correlation data at: " + PathConfig.StaticCorrelation;
+				var ex = new ArgumentException(message, PathConfig.StaticCorrelation);
 				Logger.LogError(ex);
 				throw ex;
 			}
 
-			var json = File.ReadAllText(Config.Path.StaticCorrelation);
+			var json = File.ReadAllText(PathConfig.StaticCorrelation);
 			var correlations = JArray.Parse(json);
 
 			foreach (var jToken in correlations)
@@ -262,17 +266,17 @@ namespace RatEye
 			Logger.LogInfo("Loading dynamic correlation data...");
 			var newCorrelationData = new Dictionary<string, HashSet<ItemInfo>>();
 
-			if (!File.Exists(Config.Path.DynamicCorrelation))
+			if (!File.Exists(PathConfig.DynamicCorrelation))
 			{
-				var message = "Could not find dynamic correlation data at: " + Config.Path.DynamicCorrelation;
-				var ex = new ArgumentException(message, Config.Path.DynamicCorrelation);
+				var message = "Could not find dynamic correlation data at: " + PathConfig.DynamicCorrelation;
+				var ex = new ArgumentException(message, PathConfig.DynamicCorrelation);
 				Logger.LogError(ex);
 				throw ex;
 			}
 
 			try
 			{
-				var json = File.ReadAllText(Config.Path.DynamicCorrelation);
+				var json = File.ReadAllText(PathConfig.DynamicCorrelation);
 
 				// Check if we already parsed this
 				var hashCode = json.GetHashCode();
@@ -374,8 +378,8 @@ namespace RatEye
 		{
 			Logger.LogInfo("Initializing file watcher for icon cache...");
 			var fileWatcher = new FileSystemWatcher();
-			fileWatcher.Path = Path.GetDirectoryName(Config.Path.DynamicCorrelation);
-			fileWatcher.Filter = Path.GetFileName(Config.Path.DynamicCorrelation);
+			fileWatcher.Path = Path.GetDirectoryName(PathConfig.DynamicCorrelation);
+			fileWatcher.Filter = Path.GetFileName(PathConfig.DynamicCorrelation);
 			fileWatcher.NotifyFilter = NotifyFilters.Size;
 			fileWatcher.Changed += OnDynamicCorrelationDataChange;
 			fileWatcher.EnableRaisingEvents = true;
@@ -388,7 +392,7 @@ namespace RatEye
 		private static async void OnDynamicCorrelationDataChange(object source, FileSystemEventArgs e)
 		{
 			Logger.LogDebug("Dynamic correlation data changed");
-			if (!Config.Processing.Icon.UseDynamicIcons) return;
+			if (!IconConfig.UseDynamicIcons) return;
 
 			// Wait if currently scanning a item
 			//while (Config.General.ProcessingLock) await Task.Delay(25);
@@ -428,12 +432,12 @@ namespace RatEye
 		/// <returns>Count of icons in the icon cache folder</returns>
 		public static int GetIconCacheSize()
 		{
-			if (!Directory.Exists(Config.Path.DynamicIcon))
+			if (!Directory.Exists(PathConfig.DynamicIcon))
 			{
-				throw new FileNotFoundException("Could not find icon cache folder", Config.Path.DynamicIcon);
+				throw new FileNotFoundException("Could not find icon cache folder", PathConfig.DynamicIcon);
 			}
 
-			return Directory.GetFiles(Config.Path.DynamicIcon, "*.png").Length;
+			return Directory.GetFiles(PathConfig.DynamicIcon, "*.png").Length;
 		}
 
 		/// <summary>
@@ -443,7 +447,7 @@ namespace RatEye
 		{
 			try
 			{
-				var iconPathArray = Directory.GetFiles(Config.Path.DynamicIcon, "*.png");
+				var iconPathArray = Directory.GetFiles(PathConfig.DynamicIcon, "*.png");
 				foreach (var iconPath in iconPathArray) File.Delete(iconPath);
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
@@ -453,7 +457,7 @@ namespace RatEye
 				Logger.LogWarning("Could not delete icon cache folder", e);
 			}
 
-			File.WriteAllText(Config.Path.DynamicCorrelation, "{}");
+			File.WriteAllText(PathConfig.DynamicCorrelation, "{}");
 		}
 
 		/// <summary>
@@ -500,20 +504,20 @@ namespace RatEye
 			if (!success)
 			{
 				Logger.LogWarning("Could not find icon key for:\n" + itemInfo);
-				return Config.Path.UnknownIcon;
+				return PathConfig.UnknownIcon;
 			}
 
 			success = IconPaths.TryGetValue(iconKey, out var path);
 			if (!success)
 			{
 				Logger.LogWarning("Could not find path for icon key: " + iconKey);
-				return Config.Path.UnknownIcon;
+				return PathConfig.UnknownIcon;
 			}
 
 			if (!File.Exists(path))
 			{
 				Logger.LogWarning("Could not find icon for: " + itemInfo.Uid + "\nat: " + path);
-				return Config.Path.UnknownIcon;
+				return PathConfig.UnknownIcon;
 			}
 
 			return path;
@@ -528,7 +532,7 @@ namespace RatEye
 		public static int PixelsToSlots(float pixels, float? slotSize = null)
 		{
 			// Use converter class to round to nearest int instead of always rounding down
-			return Convert.ToInt32((pixels - 1) / (slotSize ?? Config.Processing.ScaledSlotSize));
+			return Convert.ToInt32((pixels - 1) / (slotSize ?? ProcessingConfig.ScaledSlotSize));
 		}
 
 		/// <summary>
@@ -539,7 +543,7 @@ namespace RatEye
 		/// <returns>Pixel size of the icon</returns>
 		public static float SlotsToPixels(int slots, float? slotSize = null)
 		{
-			return slots * (slotSize ?? Config.Processing.ScaledSlotSize) + 1;
+			return slots * (slotSize ?? ProcessingConfig.ScaledSlotSize) + 1;
 		}
 
 		/// <summary>
@@ -550,7 +554,7 @@ namespace RatEye
 		/// <returns>True if the pixels can be converted to slots</returns>
 		private static bool IsValidPixelSize(float pixels, float? slotSize = null)
 		{
-			return Math.Abs(1 - pixels % (slotSize ?? Config.Processing.ScaledSlotSize)) < 0.1f;
+			return Math.Abs(1 - pixels % (slotSize ?? ProcessingConfig.ScaledSlotSize)) < 0.1f;
 		}
 	}
 }
