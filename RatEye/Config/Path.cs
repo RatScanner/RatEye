@@ -1,4 +1,5 @@
 ﻿using System;
+using RatStash;
 
 namespace RatEye
 {
@@ -48,10 +49,26 @@ namespace RatEye
 			public string UnknownIcon;
 
 			/// <summary>
-			/// Path to the folder containing the trained LSTM model of the "bender" font.
+			/// Path to the folder containing the trained LSTM model of the "bender" font
 			/// </summary>
 			/// <remarks>File has to be named <c>"bender.traineddata"</c>.</remarks>
 			public string BenderTraineddata;
+
+			/// <summary>
+			/// Path the the file, which will be used to create a <see cref="RatStash.Database"/> instance
+			/// </summary>
+			/// <remarks>For more detail on <see cref="RatStash"/>, see <see href="https://github.com/RatScanner/RatStash"/></remarks>
+			public static string ItemData
+			{
+				get => _itemData;
+				set
+				{
+					RatStashDB = new Database(value);
+					_itemData = value;
+				}
+			}
+
+			private static string _itemData;
 
 			/// <summary>
 			/// Path of the debug folder which is used to store debug information
@@ -87,6 +104,7 @@ namespace RatEye
 				DynamicCorrelation = globalConfig.DynamicCorrelation;
 				UnknownIcon = globalConfig.UnknownIcon;
 				BenderTraineddata = globalConfig.BenderTraineddata;
+				// ItemData = globalConfig.ItemData;
 				Debug = globalConfig.Debug;
 				LogFile = globalConfig.LogFile;
 			}
@@ -101,6 +119,7 @@ namespace RatEye
 				DynamicCorrelation = Combine(DynamicIcon, "index.json");
 				UnknownIcon = Combine(Data, "unknown.png");
 				BenderTraineddata = Data;
+				ItemData = Combine(Data, "items.json");
 				Debug = Combine(Base, "Debug");
 				LogFile = Combine(Base, "Log.txt");
 			}

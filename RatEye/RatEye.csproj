@@ -1,42 +1,46 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>9</LangVersion>
-    <Company>RatScanner</Company>
-    <Authors>Blightbuster</Authors>
-    <Version>0.1.0</Version>
-    <Description>Image processing library for Escape from Tarkov</Description>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageProjectUrl>https://ratscanner.com/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/RatScanner/RatEye.git</RepositoryUrl>
-    <PackageIcon>RatLogo.png</PackageIcon>
-    <RepositoryType>git</RepositoryType>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>9</LangVersion>
+		<Company>RatScanner</Company>
+		<Authors>Blightbuster</Authors>
+		<Version>0.1.0</Version>
+		<Description>Image processing library for Escape from Tarkov</Description>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageProjectUrl>https://ratscanner.com/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/RatScanner/RatEye.git</RepositoryUrl>
+		<PackageIcon>RatLogo.png</PackageIcon>
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="OpenCvSharp4.Windows" Version="4.5.1.20210210" />
-    <PackageReference Include="RatStash" Version="1.0.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.1" />
-  </ItemGroup>
+	<PropertyGroup>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="OpenCvSharp4.Windows" Version="4.5.1.20210210" />
+		<PackageReference Include="RatStash" Version="1.0.0" />
+		<PackageReference Include="System.Drawing.Common" Version="5.0.1" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Properties\Resources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Resources.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="RatLogo.png" Pack="true" PackagePath="" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Properties\Resources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="RatLogo.png" Pack="true" PackagePath="" />
+	</ItemGroup>
 </Project>

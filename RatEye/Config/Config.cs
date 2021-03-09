@@ -1,4 +1,6 @@
-﻿namespace RatEye
+﻿using RatStash;
+
+namespace RatEye
 {
 	public partial class Config
 	{
@@ -16,6 +18,14 @@
 		/// Processing configuration object
 		/// </summary>
 		public Processing ProcessingConfig;
+
+		/// <summary>
+		/// Item database
+		/// </summary>
+		/// <remarks>
+		/// Initialized in property setter of <see cref="Path.ItemData"/>
+		/// </remarks>
+		internal static Database RatStashDB;
 
 		/// <summary>
 		/// The global config which will be used when no override config is provided

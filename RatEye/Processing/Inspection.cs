@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using OpenCvSharp.Text;
+using RatStash;
 
 namespace RatEye.Processing
 {
@@ -12,7 +13,7 @@ namespace RatEye.Processing
 	{
 		private readonly Config _config;
 		private readonly Bitmap _image;
-		private static OCRTesseract tesseractInstance;
+		private static OCRTesseract _tesseractInstance;
 
 		private Config.Path PathConfig => _config.PathConfig;
 		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
@@ -97,6 +98,8 @@ namespace RatEye.Processing
 			}
 			private set => _title = value;
 		}
+
+		public Item Item => GetItem();
 
 		/// <summary>
 		/// Constructor for inspection view processing object
@@ -283,7 +286,7 @@ namespace RatEye.Processing
 		private OCRTesseract GetTesseractInstance()
 		{
 			// Return if tesseract instance was already created
-			if (tesseractInstance != null) return tesseractInstance;
+			if (_tesseractInstance != null) return _tesseractInstance;
 
 			// Check if trained data is present
 			var traineddataPath = Path.Combine(PathConfig.BenderTraineddata, "bender.traineddata");
@@ -301,7 +304,7 @@ namespace RatEye.Processing
 				var datapath = PathConfig.BenderTraineddata;
 				var language = "bender";
 
-				tesseractInstance = OCRTesseract.Create(datapath, language, null, 3, 7);
+				_tesseractInstance = OCRTesseract.Create(datapath, language, null, 3, 7);
 			}
 			catch (Exception e)
 			{
@@ -309,7 +312,7 @@ namespace RatEye.Processing
 				throw;
 			}
 
-			return tesseractInstance;
+			return _tesseractInstance;
 		}
 
 		/// <summary>
@@ -342,6 +345,33 @@ namespace RatEye.Processing
 		{
 			var width = GetScaledMarker(inspectionType).Width;
 			return (int)(width * InspectionConfig.HorizontalTitleSearchOffsetFactor);
+		}
+
+		/// <summary>
+		/// Get the item, best matching the scanned title
+		/// </summary>
+		/// <returns>Item instance</returns>
+		private Item GetItem()
+		{
+			SatisfyState(State.ScannedTitle);
+			var items = Config.RatStashDB.GetItems();
+			return DetectedInspectionType switch
+			{
+				InspectionType.Item => items.Aggregate((i1, i2) =>
+				{
+					var i1Dist = i1.Name.NormedLevenshteinDistance(Title);
+					var i2Dist = i2.Name.NormedLevenshteinDistance(Title);
+					return i1Dist > i2Dist ? i1 : i2;
+				}),
+				InspectionType.Container => items.Aggregate((i1, i2) =>
+				{
+					var i1Dist = i1.ShortName.NormedLevenshteinDistance(Title);
+					var i2Dist = i2.ShortName.NormedLevenshteinDistance(Title);
+					return i1Dist > i2Dist ? i1 : i2;
+				}),
+				InspectionType.Unknown => null,
+				_ => throw new ArgumentOutOfRangeException()
+			};
 		}
 	}
 }

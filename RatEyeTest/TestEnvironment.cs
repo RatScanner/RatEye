@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RatEyeTest
+﻿namespace RatEyeTest
 {
 	public class TestEnvironment
 	{

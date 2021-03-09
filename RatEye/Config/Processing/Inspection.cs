@@ -1,8 +1,6 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
 using RatEye.Properties;
-using InspectionProcessing = RatEye.Processing.Inspection;
 
 namespace RatEye
 {
