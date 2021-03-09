@@ -56,7 +56,7 @@ namespace RatEye.Processing
 		/// <summary>
 		/// Position of the marker in the given image
 		/// </summary>
-		/// <remarks>Null if no marker above threshold found</remarks>
+		/// <remarks><see langword="null"/> if no marker above threshold found</remarks>
 		public Vector2 MarkerPosition
 		{
 			get
