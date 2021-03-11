@@ -1,76 +1,80 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using OpenCvSharp;
+﻿using System;
+using System.Drawing;
 
 namespace RatEye.Processing
 {
 	public class Icon
 	{
-		private Mat _scaledMat;
-		private System.Drawing.Size _locatedIconSlotSize;
-
-		private readonly object _matchLock = new object();
+		private readonly Config _config;
+		private readonly Bitmap _image;
+		private Bitmap _icon;
+		private Bitmap _scaledIcon;
 
 		/// <summary>
-		/// Do template matching over the last located icon <see cref="LocatedIcon"/>
+		/// Position of the icon inside the reference image
 		/// </summary>
-		/// <param name="useDynamicIcons">Also use dynamic icons for template matching</param>
-		/// <returns>icon key, confidence and position of the matched icon</returns>
-		public (string iconKey, float conf, Vector2 pos) MatchIcon(bool useDynamicIcons)
+		public Vector2 Position { get; }
+
+		/// <summary>
+		/// Size of the icon, measured in pixel
+		/// </summary>
+		public Vector2 Size { get; }
+
+		internal Icon(Bitmap image, Vector2 position, Vector2 size, Config config)
 		{
-			var source = _scaledMat.Clone();
+			_config = config;
+			_image = image;
+			Position = position;
+			Size = size;
+		}
 
-			(string iconKey, float conf, Vector2 pos) matchResult = (null, 0f, Vector2.Zero());
+		private enum State
+		{
+			Default,
+			Cropped,
+			Rescaled,
+		}
 
-			// Load icons
-			var iconTemplates = new Dictionary<string, Mat>();
-			// TODO set LocatedIconSlotSize
-			var staticIcons = IconManager.GetStaticIcons(_locatedIconSlotSize);
-			var dynamicIcons = IconManager.GetDynamicIcons(_locatedIconSlotSize);
+		private State _currentState = State.Default;
 
-			staticIcons.ToList().ForEach(x => iconTemplates[x.Key] = x.Value);
-			if (useDynamicIcons) dynamicIcons.ToList().ForEach(x => iconTemplates[x.Key] = x.Value);
-
-			// 
-			var firstIcon = iconTemplates.First().Value;
-			if (source.Width < firstIcon.Width || source.Height < firstIcon.Height)
+		private void SatisfyState(State targetState)
+		{
+			while (_currentState < targetState)
 			{
-				var infoText = "\nsW: " + source.Width + " | sH: " + source.Height;
-				infoText += "\ntW: " + firstIcon.Width + " | tH: " + firstIcon.Height;
-				Logger.LogWarning("Source dimensions smaller than template dimensions!" + infoText);
-				Logger.LogDebugMat(source, "source");
-				Logger.LogDebugMat(firstIcon, "template");
-				return matchResult;
-			}
-
-			// hm = highest match
-			var hmConf = 0f;
-			var hmKey = "";
-			var hmPos = Vector2.Zero();
-
-			Parallel.ForEach(iconTemplates, icon =>
-			{
-				// TODO Prepare masks when loading icons
-				var mask = icon.Value.InRange(new Scalar(0, 0, 0, 128), new Scalar(255, 255, 255, 255));
-				mask = mask.CvtColor(ColorConversionCodes.GRAY2BGR, 3);
-				var iconNoAlpha = icon.Value.CvtColor(ColorConversionCodes.BGRA2BGR, 3);
-
-				var matches = source.MatchTemplate(iconNoAlpha, TemplateMatchModes.CCorrNormed, mask);
-				matches.MinMaxLoc(out _, out var maxVal, out _, out var maxLoc);
-
-				lock (_matchLock)
+				try
 				{
-					if (maxVal > hmConf)
+					switch (_currentState + 1)
 					{
-						hmConf = (float)maxVal;
-						hmKey = icon.Key;
-						hmPos = new Vector2(maxLoc);
+						case State.Default:
+							break;
+						case State.Cropped:
+							CropIcon();
+							break;
+						case State.Rescaled:
+							RescaleIcon();
+							break;
+						default:
+							throw new Exception("Cannot satisfy unknown state.");
 					}
-				}
-			});
 
-			return (hmKey, hmConf, hmPos);
+					_currentState++;
+				}
+				catch (Exception e)
+				{
+					Logger.LogError(e);
+					throw;
+				}
+			}
+		}
+
+		private void CropIcon()
+		{
+			_icon = _image.Crop(Position.X, Position.Y, Size.X, Size.Y);
+		}
+
+		private void RescaleIcon()
+		{
+			_scaledIcon = _icon.Rescale(_config.ProcessingConfig.InverseScale);
 		}
 	}
 }
