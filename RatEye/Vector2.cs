@@ -21,8 +21,15 @@ namespace RatEye
 			Y = y;
 		}
 
-		public static Vector2 Zero() => new Vector2(0, 0);
-		public static Vector2 One() => new Vector2(1, 1);
+		/// <summary>
+		/// Returns a new <see cref="Vector2"/> with <c>X = 0</c> and <c>Y = 0</c>
+		/// </summary>
+		public static Vector2 Zero => new Vector2(0, 0);
+
+		/// <summary>
+		/// Returns a new <see cref="Vector2"/> with <c>X = 1</c> and <c>Y = 1</c>
+		/// </summary>
+		public static Vector2 One => new Vector2(1, 1);
 
 		public static implicit operator System.Drawing.Point(Vector2 vec)
 		{
@@ -84,11 +91,41 @@ namespace RatEye
 			return new Vector2(a.X / b, a.Y / b);
 		}
 
+		public static bool operator ==(Vector2 a, Vector2 b)
+		{
+			if (a is null) return false;
+			if (b is null) return false;
+			return a.Equals(b);
+		}
+
+		public static bool operator !=(Vector2 a, Vector2 b)
+		{
+			return !(a == b);
+		}
+
 		public bool Equals(Vector2 other)
 		{
-			if (other == null) return false;
-			if (this == other) return true;
+			if (other is null) return false;
+			if (ReferenceEquals(this, other)) return true;
 			return X == other.X && Y == other.Y;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == null) return false;
+			if (!(obj is Vector2)) return false;
+			return Equals((Vector2)obj);
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				var hash = (int)2166136261;
+				hash = (hash * 16777619) ^ X.GetHashCode();
+				hash = (hash * 16777619) ^ Y.GetHashCode();
+				return hash;
+			}
 		}
 
 		public override string ToString()
