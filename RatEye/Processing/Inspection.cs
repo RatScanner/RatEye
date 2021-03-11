@@ -99,13 +99,23 @@ namespace RatEye.Processing
 			private set => _title = value;
 		}
 
-		public Item Item => GetItem();
+		/// <summary>
+		/// Detected item
+		/// </summary>
+		public Item Item
+		{
+			get
+			{
+				SatisfyState(State.ScannedTitle);
+				return GetItem();
+			}
+		}
 
 		/// <summary>
 		/// Constructor for inspection view processing object
 		/// </summary>
 		/// <param name="image">Image of the inspection view which will be processed</param>
-		/// /// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
+		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
 		/// <remarks>Provided image has to be in RGB</remarks>
 		public Inspection(Bitmap image, Config overrideConfig = null)
 		{
@@ -353,7 +363,6 @@ namespace RatEye.Processing
 		/// <returns>Item instance</returns>
 		private Item GetItem()
 		{
-			SatisfyState(State.ScannedTitle);
 			var items = Config.RatStashDB.GetItems();
 			return DetectedInspectionType switch
 			{
