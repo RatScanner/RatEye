@@ -41,29 +41,21 @@ namespace RatEye.Processing
 		{
 			while (_currentState < targetState)
 			{
-				try
+				switch (_currentState + 1)
 				{
-					switch (_currentState + 1)
-					{
-						case State.Default:
-							break;
-						case State.Cropped:
-							CropIcon();
-							break;
-						case State.Rescaled:
-							RescaleIcon();
-							break;
-						default:
-							throw new Exception("Cannot satisfy unknown state.");
-					}
+					case State.Default:
+						break;
+					case State.Cropped:
+						CropIcon();
+						break;
+					case State.Rescaled:
+						RescaleIcon();
+						break;
+					default:
+						throw new Exception("Cannot satisfy unknown state.");
+				}
 
-					_currentState++;
-				}
-				catch (Exception e)
-				{
-					Logger.LogError(e);
-					throw;
-				}
+				_currentState++;
 			}
 		}
 

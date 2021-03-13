@@ -138,29 +138,21 @@ namespace RatEye.Processing
 		{
 			while (_currentState < targetState)
 			{
-				try
+				switch (_currentState + 1)
 				{
-					switch (_currentState + 1)
-					{
-						case State.Default:
-							break;
-						case State.SearchedMarker:
-							SearchMarker();
-							break;
-						case State.ScannedTitle:
-							ScanTitle();
-							break;
-						default:
-							throw new Exception("Cannot satisfy unknown state.");
-					}
+					case State.Default:
+						break;
+					case State.SearchedMarker:
+						SearchMarker();
+						break;
+					case State.ScannedTitle:
+						ScanTitle();
+						break;
+					default:
+						throw new Exception("Cannot satisfy unknown state.");
+				}
 
-					_currentState++;
-				}
-				catch (Exception e)
-				{
-					Logger.LogError(e);
-					throw;
-				}
+				_currentState++;
 			}
 		}
 
@@ -304,25 +296,14 @@ namespace RatEye.Processing
 			{
 				var message = "Could not find traineddata at: " + traineddataPath;
 				var ex = new ArgumentException(message, PathConfig.BenderTraineddata);
-				Logger.LogError(ex);
 				throw ex;
 			}
 
 			// Create a tesseract instance
-			try
-			{
-				var datapath = PathConfig.BenderTraineddata;
-				var language = "bender";
+			var datapath = PathConfig.BenderTraineddata;
+			var language = "bender";
 
-				_tesseractInstance = OCRTesseract.Create(datapath, language, null, 3, 7);
-			}
-			catch (Exception e)
-			{
-				Logger.LogError("Could not create tesseract instance!", e);
-				throw;
-			}
-
-			return _tesseractInstance;
+			return OCRTesseract.Create(datapath, language, null, 3, 7);
 		}
 
 		/// <summary>

@@ -35,60 +35,6 @@ namespace RatEye
 			}
 		}
 
-		internal static void ShowMat(OpenCvSharp.Mat mat, string name = "")
-		{
-			new OpenCvSharp.Window(name, mat);
-		}
-
-		internal static void LogInfo(string message)
-		{
-			AppendToLog("[Info]  " + message);
-		}
-
-		internal static void LogWarning(string message, Exception e = null)
-		{
-			AppendToLog("[Warning] " + message);
-			AppendToLog(e == null ? Environment.StackTrace : e.ToString());
-		}
-
-		/// <summary>
-		/// Logs a error
-		/// </summary>
-		/// <param name="e">Exception which gets written into the log</param>
-		internal static void LogError(Exception e)
-		{
-			LogError(e.Message, e);
-		}
-
-		/// <summary>
-		/// Logs a error
-		/// </summary>
-		/// <param name="message">Message which describes the error</param>
-		/// <param name="e">Exception which gets written into the log</param>
-		internal static void LogError(string message, Exception e = null)
-		{
-			// Log the error
-			var logMessage = "[Error] " + message;
-			var divider = new string('-', 20);
-			if (e != null) logMessage += $"\n {divider} \n {e}";
-			else logMessage += $"\n {divider} \n {Environment.StackTrace}";
-			AppendToLog(logMessage);
-		}
-
-		/// <summary>
-		/// Deletes all images from the configured debug folder
-		/// </summary>
-		public static void ClearDebugImages()
-		{
-			if (!Directory.Exists(Config.GlobalConfig.PathConfig.Debug)) return;
-
-			var files = Directory.GetFiles(Config.GlobalConfig.PathConfig.Debug, "*.png");
-			foreach (var file in files)
-			{
-				File.Delete(file);
-			}
-		}
-
 		private static string GetUniquePath(string basePath, string fileName, string extension)
 		{
 			fileName = fileName.Replace(' ', '_');
@@ -104,14 +50,6 @@ namespace RatEye
 
 			Directory.CreateDirectory(Path.GetDirectoryName(uniquePath));
 			return uniquePath;
-		}
-
-		/// <summary>
-		/// Deletes the log file
-		/// </summary>
-		public static void Clear()
-		{
-			File.Delete(Config.GlobalConfig.PathConfig.LogFile);
 		}
 
 		private static void AppendToLog(string content)
