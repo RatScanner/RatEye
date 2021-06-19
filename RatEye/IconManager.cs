@@ -95,8 +95,7 @@ namespace RatEye
 			var iconConfig = _config.ProcessingConfig.IconConfig;
 			if (iconConfig.UseStaticIcons) LoadStaticIcons();
 			if (iconConfig.UseDynamicIcons) LoadDynamicIcons();
-
-			if (iconConfig.WatchDynamicIcons) InitFileWatcher();
+			if (iconConfig.UseDynamicIcons && iconConfig.WatchDynamicIcons) InitFileWatcher();
 		}
 
 		#region Icon loading
