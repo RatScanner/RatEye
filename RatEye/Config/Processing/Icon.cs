@@ -51,7 +51,7 @@
 				private void SetDefaults()
 				{
 					UseStaticIcons = false;
-					UseDynamicIcons = true;
+					UseDynamicIcons = false;
 					WatchDynamicIcons = true;
 				}
 
