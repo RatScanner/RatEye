@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 
@@ -193,19 +194,20 @@ namespace RatEye.Processing
 			for (e = c + 1; e <= y; e++)
 			{
 				if (indexer[e, d].Equals(0x00)) return false;
-				if (e == y && d == x)
-				{
-					var size = bottomRight - topLeft + Vector2.One;
+				if (!(e == y && d == x)) continue;
 
-					var altWidth = topRight.X - bottomLeft.X + 1;
-					var altHeight = bottomLeft.Y - topRight.Y + 1;
+				var size = bottomRight - topLeft + Vector2.One;
 
-					if (size != new Vector2(altWidth, altHeight)) return false;
-					if (size == new Vector2(2, 2)) return false;
+				var altWidth = topRight.X - bottomLeft.X + 1;
+				var altHeight = bottomLeft.Y - topRight.Y + 1;
 
-					_icons.Add(new Icon(_image.ToBitmap(), topLeft, size, _config));
-					return true;
-				}
+				if (size != new Vector2(altWidth, altHeight)) return false;
+				if (size == new Vector2(2, 2)) return false;
+				if (_icons.Any(i => i.Position == topLeft)) return false;
+
+				var icon = _image.ToBitmap().Crop(topLeft.X, topLeft.Y, size.X, size.Y);
+				_icons.Add(new Icon(icon, topLeft, size, _config));
+				return true;
 			}
 
 			return false;
@@ -215,7 +217,7 @@ namespace RatEye.Processing
 		/// Try to locate a icon at a given position
 		/// </summary>
 		/// <param name="position">Position at which to locate the icon. <see langword="null"/> = center</param>
-		/// <returns>A tuple containing the position and size in pixel</returns>
+		/// <returns><see langword="null"/> if no icon was found</returns>
 		/// <remarks><see cref="Vector2.Zero"/> corresponds top left corner of the image</remarks>
 		public Icon LocateIcon(Vector2 position = null)
 		{
@@ -225,14 +227,10 @@ namespace RatEye.Processing
 
 			foreach (var icon in _icons)
 			{
-				if (position.X > icon.Position.X && position.Y > icon.Position.Y)
-				{
-					var bottomRight = icon.Position + icon.Size;
-					if (position.X < bottomRight.X && position.Y < bottomRight.Y)
-					{
-						return icon;
-					}
-				}
+				if (position.X <= icon.Position.X || position.Y <= icon.Position.Y) continue;
+
+				var bottomRight = icon.Position + icon.Size;
+				if (position.X < bottomRight.X && position.Y < bottomRight.Y) { return icon; }
 			}
 
 			return null;

@@ -12,7 +12,12 @@ namespace RatEye
 	/// </summary>
 	public static class Logger
 	{
-		private static List<string> backlog = new List<string>();
+		private static List<string> _backlog = new();
+
+		internal static void LogDebug(string message, Exception e)
+		{
+			LogDebug(message + "\nException: " + e);
+		}
 
 		internal static void LogDebug(string message)
 		{
@@ -58,14 +63,11 @@ namespace RatEye
 
 			var prefix = "[" + DateTime.UtcNow.ToUniversalTime().TimeOfDay + "] > ";
 
-			try
-			{
-				AppendToLogRaw(prefix + content + "\n");
-			}
+			try { AppendToLogRaw(prefix + content + "\n"); }
 			catch (Exception e)
 			{
-				backlog.Add(prefix + "Could not write to log file\n" + e + "\n");
-				backlog.Add(prefix + content + "\n");
+				_backlog.Add(prefix + "Could not write to log file\n" + e + "\n");
+				_backlog.Add(prefix + content + "\n");
 				Thread.Sleep(250);
 				ProcessBacklog();
 			}
@@ -81,19 +83,13 @@ namespace RatEye
 		{
 			var newBacklog = new List<string>();
 
-			foreach (var text in backlog)
+			foreach (var text in _backlog)
 			{
-				try
-				{
-					AppendToLogRaw(text);
-				}
-				catch
-				{
-					newBacklog.Add(text);
-				}
+				try { AppendToLogRaw(text); }
+				catch { newBacklog.Add(text); }
 			}
 
-			backlog = newBacklog;
+			_backlog = newBacklog;
 		}
 	}
 }

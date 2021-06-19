@@ -5,7 +5,11 @@
 		public TestEnvironment()
 		{
 			RatEye.Config.GlobalConfig.LogDebug = true;
+			RatEye.Config.GlobalConfig.Apply();
+			Setup();
 		}
+
+		public virtual void Setup() { }
 
 		/// <summary>
 		/// Combine two paths

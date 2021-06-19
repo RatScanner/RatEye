@@ -5,7 +5,7 @@
 		<LangVersion>9</LangVersion>
 		<Company>RatScanner</Company>
 		<Authors>Blightbuster</Authors>
-		<Version>0.1.0</Version>
+		<Version>1.0.0</Version>
 		<Description>Image processing library for Escape from Tarkov</Description>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageProjectUrl>https://ratscanner.com/</PackageProjectUrl>
@@ -21,8 +21,8 @@
 	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 		<PackageReference Include="OpenCvSharp4.Windows" Version="4.5.1.20210210" />
-		<PackageReference Include="RatStash" Version="1.0.0" />
-		<PackageReference Include="System.Drawing.Common" Version="5.0.1" />
+		<PackageReference Include="RatStash" Version="1.1.0" />
+		<PackageReference Include="System.Drawing.Common" Version="5.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>

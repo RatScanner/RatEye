@@ -6,366 +6,204 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OpenCvSharp;
-using Size = System.Drawing.Size;
+using RatStash;
 
 namespace RatEye
 {
-	// TODO make non static and add possibility of override config
-	public static class IconManager
+	internal class IconManager
 	{
-		private static Config.Path PathConfig => Config.GlobalConfig.PathConfig;
-		private static Config.Processing ProcessingConfig => Config.GlobalConfig.ProcessingConfig;
-		private static Config.Processing.Icon IconConfig => ProcessingConfig.IconConfig;
+		private enum IconType
+		{
+			Static,
+			Dynamic,
+		}
 
-		private const int SlotSize = 63;
+		private Config _config;
 
 		/// <summary>
 		/// Static icons are those which are rendered ahead of time.
 		/// For example keys, medical supply's, containers, standalone mods,
 		/// and especially items like screws, drill, wires, milk and so on.
-		/// <para/> Dictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;
+		/// <para/>
+		/// <c>Dictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;</c>
 		/// </summary>
-		private static Dictionary<Size, Dictionary<string, Mat>> StaticIcons = new();
+		/// <remarks>Use the <see cref="StaticIconsLock"/> when accessing this collection.</remarks>
+		internal Dictionary<Vector2, Dictionary<string, Mat>> StaticIcons = new();
 
 		/// <summary>
 		/// Dynamic icons are those which need to be rendered at runtime
 		/// due to the items appearance being altered by attached items.
 		/// For example weapons are considered dynamic items since their
 		/// icon changes when you add rails, magazines, scopes and so on.
-		/// <para/> Dictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;
+		/// <para/>
+		/// <c>ConcurrentDictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;</c>
 		/// </summary>
-		private static Dictionary<Size, Dictionary<string, Mat>> DynamicIcons = new();
+		/// <remarks>Use the <see cref="DynamicIconsLock"/> when accessing this collection.</remarks>
+		internal Dictionary<Vector2, Dictionary<string, Mat>> DynamicIcons = new();
 
 		/// <summary>
-		/// The data used to match icons to their uid's.
-		/// <para/> Dictionary&lt;iconKey, HashSet&lt;ItemInfo&gt;&gt;
+		/// Reader / Writer lock of <see cref="StaticIcons"/>
 		/// </summary>
-		/// <remarks>
-		/// Keep this synchronized with <see cref="CorrelationDataInv"/>
-		/// </remarks>
-		private static readonly Dictionary<string, HashSet<ItemInfo>> CorrelationData = new();
+		internal readonly ReaderWriterLockSlim StaticIconsLock = new();
 
 		/// <summary>
-		/// The data used to match uid's to their icon.
-		/// This is the inverse of <see cref="CorrelationData"/>
-		/// <para/> Dictionary&lt;ItemInfo, iconKey&gt;
+		/// Reader / Writer lock of <see cref="DynamicIcons"/>
 		/// </summary>
-		/// <remarks>
-		/// Keep this synchronized with <see cref="CorrelationData"/>
-		/// </remarks>
-		private static readonly Dictionary<ItemInfo, string> CorrelationDataInv = new();
+		internal readonly ReaderWriterLockSlim DynamicIconsLock = new();
 
 		/// <summary>
 		/// The icon paths connected to each icon key
-		/// <para/> Dictionary&lt;iconKey, iconPath&gt;
+		/// <para/> ConcurrentDictionary&lt;iconKey, iconPath&gt;
 		/// </summary>
-		private static readonly Dictionary<string, string> IconPaths = new();
+		private readonly Dictionary<string, string> _iconPaths = new();
 
-		private const int RetryCount = 3;
-		private static int dynamicCorrelationDataHash;
+		private FileSystemWatcher _dynCorrelationDataWatcher;
 
 		/// <summary>
-		/// Get static icons with matching size
+		/// The data used to match icon keys of static icons to their item
+		/// <para/>
+		/// <c>Dictionary&lt;iconKey, item&gt;</c>
 		/// </summary>
-		/// <seealso cref="StaticIcons"/>
-		/// <seealso cref="DynamicIcons"/>
-		/// <param name="size">Size of the icon in cells</param>
-		/// <returns>Dictionary with the key being the icon name and the value being the icon</returns>
-		public static Dictionary<string, Mat> GetStaticIcons(Size size)
-		{
-			if (!StaticIcons.ContainsKey(size)) return null;
-			return StaticIcons[size];
-		}
+		private Dictionary<string, Item> _staticCorrelationData = new();
 
 		/// <summary>
-		/// Get dynamic icons with matching size
+		/// The data used to match icon keys of dynamic icons to their item
+		/// <para/>
+		/// <c>Dictionary&lt;iconKey, item&gt;</c>
 		/// </summary>
-		/// <seealso cref="StaticIcons"/>
-		/// <seealso cref="DynamicIcons"/>
-		/// <param name="size">Size of the icon in cells</param>
-		/// <returns>Dictionary with the key being the uid and the value being the icon</returns>
-		public static Dictionary<string, Mat> GetDynamicIcons(Size size)
-		{
-			if (!DynamicIcons.ContainsKey(size)) return null;
-			return DynamicIcons[size];
-		}
+		private Dictionary<string, Item> _dynamicCorrelationData = new();
 
 		/// <summary>
-		/// Load all icons from path and organize them based on size
+		/// Reader / Writer lock of <see cref="_staticCorrelationDataLock"/>
 		/// </summary>
-		public static void Init()
-		{
-			LoadStaticIcons();
-			LoadStaticCorrelationData();
-			InverseCorrelationData();
+		private readonly ReaderWriterLockSlim _staticCorrelationDataLock = new();
 
-			if (IconConfig.UseDynamicIcons)
-			{
-				OnDynamicCorrelationDataChange(null, null);
-				InitFileWatcher();
-			}
+		/// <summary>
+		/// Reader / Writer lock of <see cref="_dynamicCorrelationDataLock"/>
+		/// </summary>
+		private readonly ReaderWriterLockSlim _dynamicCorrelationDataLock = new();
+
+		/// <summary>
+		/// Constructor for icon manager object
+		/// </summary>
+		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
+		/// <remarks>Depends on <see cref="Config.Processing.Icon"/> and <see cref="Config.Path"/></remarks>
+		public IconManager(Config overrideConfig = null)
+		{
+			_config = overrideConfig ?? Config.GlobalConfig;
+
+			var iconConfig = _config.ProcessingConfig.IconConfig;
+			if (iconConfig.UseStaticIcons) LoadStaticIcons();
+			if (iconConfig.UseDynamicIcons) LoadDynamicIcons();
+
+			if (iconConfig.WatchDynamicIcons) InitFileWatcher();
 		}
 
 		#region Icon loading
 
-		private static void LoadStaticIcons()
+		private void LoadStaticIcons()
 		{
-			Logger.LogInfo("Loading static icons...");
-			if (!Directory.Exists(PathConfig.StaticIcon))
-			{
-				var message = "Could not find icon folder at: " + PathConfig.StaticIcon;
-				var ex = new ArgumentException(message, PathConfig.StaticIcon);
-				Logger.LogError(ex);
-				throw ex;
-			}
+			LoadStaticCorrelationData();
 
-			var iconPathArray = Directory.GetFiles(PathConfig.StaticIcon, "*.png");
-
-			var loadedIcons = 0;
-			var totalIcons = iconPathArray.Length;
-
-			Parallel.ForEach(iconPathArray, iconPath =>
-			{
-				var fileName = Path.GetFileNameWithoutExtension(iconPath);
-				var iconKey = GetIconKey(fileName, true);
-				var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
-
-				// We use a hardcoded slotSize since the icons, extracted from the game, are all FHD
-				if (!IsValidPixelSize(mat.Width, SlotSize) || !IsValidPixelSize(mat.Height, SlotSize))
-				{
-					Logger.LogWarning("Icon has invalid size. Path: " + iconPath);
-					return;
-				}
-
-				var size = new Size(PixelsToSlots(mat.Width, SlotSize), PixelsToSlots(mat.Height, SlotSize));
-
-				lock (StaticIcons)
-				{
-					if (!StaticIcons.ContainsKey(size))
-					{
-						StaticIcons.Add(size, new Dictionary<string, Mat>());
-					}
-
-					// Add icon to icon and path dictionary
-					StaticIcons[size][iconKey] = mat;
-					IconPaths[iconKey] = iconPath;
-					loadedIcons++;
-				}
-			});
-
-			Logger.LogInfo("Loaded " + loadedIcons + "/" + totalIcons + " icons successfully.");
+			var temp = LoadIcons(_config.PathConfig.StaticIcons, IconType.Static);
+			StaticIconsLock.EnterWriteLock();
+			try { StaticIcons = temp; }
+			finally { StaticIconsLock.ExitWriteLock(); }
 		}
 
-		private static Dictionary<Size, Dictionary<string, Mat>> LoadDynamicIcons(int retryIndex = 0)
+		private void LoadDynamicIcons()
 		{
-			Logger.LogInfo("Loading dynamic icons...");
-			var newDynamicIcons = new Dictionary<Size, Dictionary<string, Mat>>();
+			LoadDynamicCorrelationData();
 
-			if (!Directory.Exists(PathConfig.DynamicIcon))
+			var temp = LoadIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic, 2);
+			DynamicIconsLock.EnterWriteLock();
+			try { DynamicIcons = temp; }
+			finally { DynamicIconsLock.ExitWriteLock(); }
+		}
+
+		private Dictionary<Vector2, Dictionary<string, Mat>> LoadIcons(
+			string folderPath,
+			IconType iconType,
+			int retryCount = 0)
+		{
+			if (!Directory.Exists(folderPath))
 			{
-				var message = "Could not find icon cache folder at: " + PathConfig.DynamicIcon;
-				var ex = new ArgumentException(message, PathConfig.DynamicIcon);
-				Logger.LogError(ex);
-				throw ex;
+				var message = "Could not find icon folder at: " + folderPath;
+				throw new FileNotFoundException(message);
 			}
 
+			var loadedIcons = new Dictionary<Vector2, Dictionary<string, Mat>>();
 			try
 			{
-				var iconPathArray = Directory.GetFiles(PathConfig.DynamicIcon, "*.png");
-
-				var loadedIcons = 0;
-				var totalIcons = iconPathArray.Length;
+				var iconPathArray = Directory.GetFiles(folderPath, "*.png");
 
 				Parallel.ForEach(iconPathArray, iconPath =>
 				{
-					var fileName = Path.GetFileNameWithoutExtension(iconPath);
-					var iconKey = GetIconKey(fileName, false);
+					var iconKey = GetIconKey(iconPath, iconType);
 					var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
 
-					// We use a hardcoded slotSize since the icons, extracted from the game, are all FHD
-					if (!IsValidPixelSize(mat.Width, SlotSize) || !IsValidPixelSize(mat.Height, SlotSize))
-					{
-						Logger.LogWarning("Icon has invalid size. Path: " + iconPath);
-						return;
-					}
+					// Do not add the icon to the list, if its size cannot be converted to slots
+					if (!IsValidPixelSize(mat.Width) || !IsValidPixelSize(mat.Height)) return;
 
-					var size = new Size(PixelsToSlots(mat.Width, SlotSize), PixelsToSlots(mat.Height, SlotSize));
-
-					lock (newDynamicIcons)
+					var size = new Vector2(PixelsToSlots(mat.Width), PixelsToSlots(mat.Height));
+					lock (loadedIcons)
 					{
-						if (!newDynamicIcons.ContainsKey(size))
-						{
-							newDynamicIcons.Add(size, new Dictionary<string, Mat>());
-						}
+						if (!loadedIcons.ContainsKey(size)) { loadedIcons.Add(size, new Dictionary<string, Mat>()); }
 
 						// Add icon to icon and path dictionary
-						newDynamicIcons[size][iconKey] = mat;
-						IconPaths[iconKey] = iconPath;
-						loadedIcons++;
+						loadedIcons[size][iconKey] = mat;
+						_iconPaths[iconKey] = iconPath;
 					}
 				});
-
-				Logger.LogInfo("Loaded " + loadedIcons + "/" + totalIcons + " icons successfully.");
-				return newDynamicIcons;
 			}
 			catch (Exception e)
 			{
-				retryIndex++;
-				Logger.LogWarning($"Could not load dynamic icons! ({retryIndex}/{RetryCount})", e);
-				if (retryIndex < RetryCount)
+				Logger.LogDebug("Could not load icons!", e);
+				if (retryCount > 0)
 				{
-					Logger.LogInfo("Trying again...");
 					Thread.Sleep(100);
-					return LoadDynamicIcons(retryIndex);
+					return LoadIcons(folderPath, iconType, retryCount - 1);
 				}
-
-				return null;
 			}
+
+			return loadedIcons;
 		}
 
 		#endregion
 
-		#region Correlation data loading
+		#region Correlation Data Loading
 
-		private static void LoadStaticCorrelationData()
+		private void LoadStaticCorrelationData()
 		{
-			Logger.LogInfo("Loading static correlation data...");
+			var path = _config.PathConfig.StaticCorrelationData;
+			var correlations = JArray.Parse(ReadFileNonBlocking(path));
 
-			if (!File.Exists(PathConfig.StaticCorrelation))
-			{
-				var message = "Could not find static correlation data at: " + PathConfig.StaticCorrelation;
-				var ex = new ArgumentException(message, PathConfig.StaticCorrelation);
-				Logger.LogError(ex);
-				throw ex;
-			}
-
-			var json = File.ReadAllText(PathConfig.StaticCorrelation);
-			var correlations = JArray.Parse(json);
-
+			var correlationData = new Dictionary<string, Item>();
 			foreach (var jToken in correlations)
 			{
 				var correlation = (JObject)jToken;
-				var icon = correlation.GetValue("icon").ToString();
+				var iconPath = correlation.GetValue("icon").ToString();
 				var uid = correlation.GetValue("uid").ToString();
 
-				// Remove file extension from icon path
-				var fileName = Path.GetFileNameWithoutExtension(icon);
-				var iconKey = GetIconKey(fileName, true);
-				if (!CorrelationData.ContainsKey(iconKey))
-				{
-					CorrelationData.Add(iconKey, new HashSet<ItemInfo>());
-				}
-
-				// This will never throw because we just made sure that the key exists
-				CorrelationData[iconKey].Add(new ItemInfo(uid));
+				var iconKey = GetIconKey(iconPath, IconType.Static);
+				correlationData[iconKey] = Config.RatStashDB.GetItem(uid);
 			}
+
+			_staticCorrelationDataLock.EnterWriteLock();
+			try { _staticCorrelationData = correlationData; }
+			finally { _staticCorrelationDataLock.ExitWriteLock(); }
 		}
 
-		private static Dictionary<string, HashSet<ItemInfo>> LoadDynamicCorrelationData(int retryIndex = 0)
+		private void LoadDynamicCorrelationData()
 		{
-			Logger.LogInfo("Loading dynamic correlation data...");
-			var newCorrelationData = new Dictionary<string, HashSet<ItemInfo>>();
+			var path = _config.PathConfig.DynamicCorrelationData;
+			var parsedIndex = Config.RatStashDB.ParseItemCacheIndex(path);
+			var correlationData = parsedIndex.ToDictionary(
+				x => GetIconKey(x.Key + ".png", IconType.Dynamic), x => x.Value.item);
 
-			if (!File.Exists(PathConfig.DynamicCorrelation))
-			{
-				var message = "Could not find dynamic correlation data at: " + PathConfig.DynamicCorrelation;
-				var ex = new ArgumentException(message, PathConfig.DynamicCorrelation);
-				Logger.LogError(ex);
-				throw ex;
-			}
-
-			try
-			{
-				var json = File.ReadAllText(PathConfig.DynamicCorrelation);
-
-				// Check if we already parsed this
-				var hashCode = json.GetHashCode();
-				if (hashCode == dynamicCorrelationDataHash)
-				{
-					Logger.LogInfo("Dynamic correlation data already up to date");
-					return null;
-				}
-
-				dynamicCorrelationDataHash = hashCode;
-
-				// We did not parse it earlier so we will do now
-				var correlations = JObject.Parse(json);
-
-				foreach (var correlation in correlations.Properties())
-				{
-					// Does not include extension already
-					var fileName = correlation.Value.ToString();
-
-					var uidString = correlation.Name;
-
-					// Remove file extension from icon path
-					var iconKey = GetIconKey(fileName, false);
-					if (!newCorrelationData.ContainsKey(iconKey))
-					{
-						newCorrelationData.Add(iconKey, new HashSet<ItemInfo>());
-					}
-
-					// This will never throw because we just made sure that the key exists
-					newCorrelationData[iconKey].Add(ParseUidString(uidString));
-				}
-
-				return newCorrelationData;
-			}
-			catch (Exception e)
-			{
-				retryIndex++;
-				Logger.LogWarning($"Could not load dynamic correlation data! ({retryIndex}/{RetryCount})", e);
-				if (retryIndex < RetryCount)
-				{
-					Logger.LogInfo("Trying again...");
-					Thread.Sleep(100);
-					return LoadDynamicCorrelationData(retryIndex);
-				}
-
-				return null;
-			}
-		}
-
-		private static ItemInfo ParseUidString(string uidString)
-		{
-			var pairs = uidString.Split(',').Select(s => s.Trim()).ToArray();
-			pairs = pairs.Where(pair => !string.IsNullOrEmpty(pair)).ToArray();
-
-			// Remove and store leading base uid
-			var space = new[] { ' ' };
-			var baseUid = pairs[0].Split(space, 2)[0].Trim();
-			pairs[0] = pairs[0].Split(space, 2)[1].Trim();
-
-			var dDot = new[] { ':' };
-			var mods = pairs.Select(s => new KeyValuePair<string, string>(s.Split(dDot, 2)[0], s.Split(dDot, 2)[1]));
-
-			var modUidList = new List<string>();
-			foreach (var mod in mods)
-			{
-				var modUid = mod.Value.Split(dDot, 2)[0].Trim();
-				modUidList.Add(modUid);
-			}
-
-			var cleanModUidList = modUidList.Where(uid => !string.IsNullOrEmpty(uid) && uid.Length > 12).ToArray();
-			return new ItemInfo(baseUid, cleanModUidList, uidString);
-		}
-
-		/// <summary>
-		/// Inverse the correlation data to have quick access to it like a bidirectional dictionary
-		/// </summary>
-		private static void InverseCorrelationData()
-		{
-			// Clear in inverse data
-			CorrelationDataInv.Clear();
-
-			// Populate with new data
-			foreach (var entry in CorrelationData)
-			{
-				foreach (var itemInfo in entry.Value)
-				{
-					CorrelationDataInv[itemInfo] = entry.Key;
-				}
-			}
+			_dynamicCorrelationDataLock.EnterWriteLock();
+			try { _dynamicCorrelationData = correlationData; }
+			finally { _dynamicCorrelationDataLock.ExitWriteLock(); }
 		}
 
 		#endregion
@@ -374,187 +212,101 @@ namespace RatEye
 		/// Initialize a file watcher for the dynamic correlation data
 		/// to update the dynamic icons when something changes
 		/// </summary>
-		private static void InitFileWatcher()
+		private void InitFileWatcher()
 		{
-			Logger.LogInfo("Initializing file watcher for icon cache...");
-			var fileWatcher = new FileSystemWatcher();
-			fileWatcher.Path = Path.GetDirectoryName(PathConfig.DynamicCorrelation);
-			fileWatcher.Filter = Path.GetFileName(PathConfig.DynamicCorrelation);
-			fileWatcher.NotifyFilter = NotifyFilters.Size;
-			fileWatcher.Changed += OnDynamicCorrelationDataChange;
-			fileWatcher.EnableRaisingEvents = true;
+			Logger.LogDebug("Initializing file watcher for dynamic correlation data...");
+			_dynCorrelationDataWatcher = new FileSystemWatcher();
+			_dynCorrelationDataWatcher.Path = Path.GetDirectoryName(_config.PathConfig.DynamicIcons);
+			_dynCorrelationDataWatcher.Filter = Path.GetFileName(_config.PathConfig.DynamicCorrelationData);
+			_dynCorrelationDataWatcher.NotifyFilter = NotifyFilters.Size;
+			_dynCorrelationDataWatcher.Changed += OnDynamicCorrelationDataChange;
+			_dynCorrelationDataWatcher.EnableRaisingEvents = true;
 		}
 
 		/// <summary>
 		/// Event which gets called when the dynamic correlation data file
 		/// get changed. Dynamic icons and correlation data get updated.
 		/// </summary>
-		private static async void OnDynamicCorrelationDataChange(object source, FileSystemEventArgs e)
+		private void OnDynamicCorrelationDataChange(object source, FileSystemEventArgs e)
 		{
 			Logger.LogDebug("Dynamic correlation data changed");
-			if (!IconConfig.UseDynamicIcons) return;
 
-			// Wait if currently scanning a item
-			//while (Config.General.ProcessingLock) await Task.Delay(25);
-
-			// Try to load new dynamic correlation data
-			var newDynamicCorrelationData = LoadDynamicCorrelationData();
-			if (newDynamicCorrelationData == null) return;
-
-			// Try to load new dynamic icons
-			var newDynamicIcons = LoadDynamicIcons();
-			if (newDynamicIcons == null) return;
-
-			// All data loaded successfully at this point so we can begin swapping the data
-
-			// Acquire the lock
-			//Config.General.ProcessingLock = true;
-
-			// Replace old with new dynamic icons
-			DynamicIcons = newDynamicIcons;
-
-			// Replace old with new dynamic correlation data
-			foreach (var entry in newDynamicCorrelationData)
-			{
-				CorrelationData[entry.Key] = entry.Value;
-			}
-
-			// Update inverse correlation data
-			InverseCorrelationData();
-
-			// Release the lock
-			//Config.General.ProcessingLock = false;
+			LoadDynamicCorrelationData();
+			LoadDynamicIcons();
 		}
 
 		/// <summary>
-		/// Get the amount of icons in the icon cache folder
+		/// Get the unique icon key for a icon path and its type
 		/// </summary>
-		/// <returns>Count of icons in the icon cache folder</returns>
-		public static int GetIconCacheSize()
+		/// <param name="iconPath">The path to the icon</param>
+		/// <param name="iconType">The type of the icon</param>
+		/// <returns></returns>
+		private static string GetIconKey(string iconPath, IconType iconType)
 		{
-			if (!Directory.Exists(PathConfig.DynamicIcon))
-			{
-				throw new FileNotFoundException("Could not find icon cache folder", PathConfig.DynamicIcon);
-			}
-
-			return Directory.GetFiles(PathConfig.DynamicIcon, "*.png").Length;
+			var iconFile = Path.GetFileName(iconPath);
+			return iconFile + iconType;
 		}
 
 		/// <summary>
-		/// Delete the icon cache folder
+		/// Get the item, referenced by its icon key
 		/// </summary>
-		public static void ClearIconCache()
+		/// <param name="iconKey"></param>
+		/// <returns>The matching item</returns>
+		internal Item GetItem(string iconKey)
 		{
-			try
+			if (iconKey.EndsWith(IconType.Static.ToString()))
 			{
-				var iconPathArray = Directory.GetFiles(PathConfig.DynamicIcon, "*.png");
-				foreach (var iconPath in iconPathArray) File.Delete(iconPath);
-				GC.Collect();
-				GC.WaitForPendingFinalizers();
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning("Could not delete icon cache folder", e);
+				_staticCorrelationDataLock.EnterReadLock();
+				try { return _staticCorrelationData[iconKey]; }
+				finally { _staticCorrelationDataLock.ExitReadLock(); }
 			}
 
-			File.WriteAllText(PathConfig.DynamicCorrelation, "{}");
-		}
+			if (iconKey.EndsWith(IconType.Dynamic.ToString()))
+			{
+				_dynamicCorrelationDataLock.EnterReadLock();
+				try { return _dynamicCorrelationData[iconKey]; }
+				finally { _dynamicCorrelationDataLock.ExitReadLock(); }
+			}
 
-		/// <summary>
-		/// Get item info's associated to a icon key
-		/// </summary>
-		/// <param name="iconKey">The icon key used to find the item info's</param>
-		/// <returns>Item info's associated with the icon key</returns>
-		public static ItemInfo[] GetItemInfo(string iconKey)
-		{
-			if (iconKey == null) return null;
-			var success = CorrelationData.TryGetValue(iconKey, out var itemInfo);
-			if (success) return itemInfo.ToArray();
-
-			Logger.LogWarning("Could not find any item info for icon key: " + iconKey);
 			return null;
 		}
 
 		/// <summary>
-		/// Compute the icon key of a give icon
-		/// </summary>
-		/// <param name="fileName">The file name of the icon without extension</param>
-		/// <param name="isStaticIcon">
-		/// True if the item is rendered ahead of time.
-		/// <seealso cref="StaticIcons"/>
-		/// <seealso cref="DynamicIcons"/>
-		/// </param>
-		/// <returns>The icon key</returns>
-		private static string GetIconKey(string fileName, bool isStaticIcon)
-		{
-			return fileName + (isStaticIcon ? "-Static" : "-Dynamic");
-			//var sBuilder = new StringBuilder();
-			//var buffer = Encoding.UTF8.GetBytes(fileName + isStaticIcon);
-			//using (var hash = SHA256.Create())
-			//{
-			//    var result = hash.ComputeHash(buffer);
-			//    foreach (var b in result) sBuilder.Append(b.ToString("x2"));
-			//}
-			//return sBuilder.ToString();
-		}
-
-		public static string GetIconPath(ItemInfo itemInfo)
-		{
-			var success = CorrelationDataInv.TryGetValue(itemInfo, out var iconKey);
-			if (!success)
-			{
-				Logger.LogWarning("Could not find icon key for:\n" + itemInfo);
-				return PathConfig.UnknownIcon;
-			}
-
-			success = IconPaths.TryGetValue(iconKey, out var path);
-			if (!success)
-			{
-				Logger.LogWarning("Could not find path for icon key: " + iconKey);
-				return PathConfig.UnknownIcon;
-			}
-
-			if (!File.Exists(path))
-			{
-				Logger.LogWarning("Could not find icon for: " + itemInfo.Uid + "\nat: " + path);
-				return PathConfig.UnknownIcon;
-			}
-
-			return path;
-		}
-
-		/// <summary>
-		/// Converts the pixel unit of a icons into the slot unit
+		/// Converts the pixel unit of a icon into the slot unit
 		/// </summary>
 		/// <param name="pixels">The pixel size of the icon</param>
-		/// <param name="slotSize">Slot size to use for conversion</param>
 		/// <returns>Slot size of the icon</returns>
-		public static int PixelsToSlots(float pixels, float? slotSize = null)
+		private int PixelsToSlots(int pixels)
 		{
 			// Use converter class to round to nearest int instead of always rounding down
-			return Convert.ToInt32((pixels - 1) / (slotSize ?? ProcessingConfig.ScaledSlotSize));
-		}
-
-		/// <summary>
-		/// Converts the slot unit of a icons into the pixel unit
-		/// </summary>
-		/// <param name="slots">The slot size of the icon</param>
-		/// <param name="slotSize">Slot size to use for conversion</param>
-		/// <returns>Pixel size of the icon</returns>
-		public static float SlotsToPixels(int slots, float? slotSize = null)
-		{
-			return slots * (slotSize ?? ProcessingConfig.ScaledSlotSize) + 1;
+			return Convert.ToInt32((pixels - 1) / _config.ProcessingConfig.BaseSlotSize);
 		}
 
 		/// <summary>
 		/// Checks if the give pixels can be converted into slot unit
 		/// </summary>
 		/// <param name="pixels">The pixel size of the icon</param>
-		/// <param name="slotSize">The slot size of the icon</param>
 		/// <returns>True if the pixels can be converted to slots</returns>
-		private static bool IsValidPixelSize(float pixels, float? slotSize = null)
+		private bool IsValidPixelSize(int pixels)
 		{
-			return Math.Abs(1 - pixels % (slotSize ?? ProcessingConfig.ScaledSlotSize)) < 0.1f;
+			return Math.Abs(1 - pixels % _config.ProcessingConfig.BaseSlotSize) < 0.01f;
+		}
+
+		/// <summary>
+		/// Reads a file with <see cref="FileShare.ReadWrite"/>
+		/// </summary>
+		/// <param name="path">The path of the file</param>
+		/// <returns>The file content as string</returns>
+		private static string ReadFileNonBlocking(string path)
+		{
+			using var fileStream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+			using var textReader = new StreamReader(fileStream);
+			return textReader.ReadToEnd();
+		}
+
+		~IconManager()
+		{
+			_dynCorrelationDataWatcher?.Dispose();
 		}
 	}
 }

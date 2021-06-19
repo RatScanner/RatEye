@@ -62,7 +62,7 @@ namespace RatEyeTest
 						MarkerThreshold = 0.99f
 					}
 				}
-			};
+			}.Apply();
 
 			var inspection = new Inspection(image, overrideConfig);
 			Assert.True(inspection.ContainsMarker);

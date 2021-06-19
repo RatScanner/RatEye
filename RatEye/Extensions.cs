@@ -136,10 +136,7 @@ namespace RatEye
 
 		public static float NormedLevenshteinDistance(this string source, string target)
 		{
-			if (string.IsNullOrEmpty(source))
-			{
-				return string.IsNullOrEmpty(target) ? 0 : target.Length;
-			}
+			if (string.IsNullOrEmpty(source)) { return string.IsNullOrEmpty(target) ? 0 : target.Length; }
 
 			if (string.IsNullOrEmpty(target)) return source.Length;
 

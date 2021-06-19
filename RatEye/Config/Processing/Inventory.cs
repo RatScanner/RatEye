@@ -17,6 +17,8 @@
 				/// </param>
 				public Inventory(bool basedOnDefault = false)
 				{
+					EnsureStaticInit();
+
 					if (basedOnDefault)
 					{
 						SetDefaults();
@@ -27,6 +29,10 @@
 				}
 
 				private void SetDefaults() { }
+
+				internal static void SetStaticDefaults() { }
+
+				internal void Apply() { }
 			}
 		}
 	}

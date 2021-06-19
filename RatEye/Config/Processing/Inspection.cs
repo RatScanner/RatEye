@@ -90,6 +90,8 @@ namespace RatEye
 				/// </param>
 				public Inspection(bool basedOnDefault = false)
 				{
+					EnsureStaticInit();
+
 					if (basedOnDefault)
 					{
 						SetDefaults();
@@ -127,6 +129,10 @@ namespace RatEye
 					CloseButtonColorLowerBound = Color.FromArgb(50, 10, 10);
 					CloseButtonColorUpperBound = Color.FromArgb(80, 15, 15);
 				}
+
+				internal static void SetStaticDefaults() { }
+
+				internal void Apply() { }
 			}
 		}
 	}

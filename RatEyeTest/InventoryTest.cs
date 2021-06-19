@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Linq;
 using RatEye;
 using RatEye.Processing;
 using Xunit;
@@ -23,6 +24,8 @@ namespace RatEyeTest
 			var inventory = new Inventory(image);
 			var icons = inventory.Icons;
 			Assert.NotNull(icons);
+			Assert.Equal(89, icons.Count());
+			Assert.DoesNotContain(null, icons);
 		}
 	}
 }
