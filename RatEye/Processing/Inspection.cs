@@ -303,7 +303,8 @@ namespace RatEye.Processing
 			var datapath = PathConfig.BenderTraineddata;
 			var language = "bender";
 
-			return OCRTesseract.Create(datapath, language, null, 3, 7);
+			_tesseractInstance = OCRTesseract.Create(datapath, language, null, 3, 7);
+			return _tesseractInstance;
 		}
 
 		/// <summary>
