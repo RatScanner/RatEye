@@ -104,7 +104,7 @@ namespace RatEye
 			Path.SetStaticDefaults();
 			Processing.SetStaticDefaults();
 
-			RatStashDB ??= new Database(Path.ItemData);
+			RatStashDB ??= Database.FromFile(Path.ItemData);
 		}
 
 		private static void EnsureStaticInit()
@@ -123,7 +123,7 @@ namespace RatEye
 		/// </remarks>
 		public Config Apply()
 		{
-			RatStashDB = new Database(Path.ItemData);
+			RatStashDB = Database.FromFile(Path.ItemData);
 			IconManager = new IconManager();
 
 			Config.GlobalConfig.PathConfig.Apply();

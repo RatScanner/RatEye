@@ -79,7 +79,7 @@ namespace RatEye
 				}
 				set
 				{
-					RatStashDB = new Database(value);
+					RatStashDB = Database.FromFile(value);
 					_itemData = value;
 				}
 			}
