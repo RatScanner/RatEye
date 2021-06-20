@@ -88,7 +88,7 @@ namespace RatEye
 		/// </summary>
 		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
 		/// <remarks>Depends on <see cref="Config.Processing.Icon"/> and <see cref="Config.Path"/></remarks>
-		public IconManager(Config overrideConfig = null)
+		internal IconManager(Config overrideConfig = null)
 		{
 			_config = overrideConfig ?? Config.GlobalConfig;
 
