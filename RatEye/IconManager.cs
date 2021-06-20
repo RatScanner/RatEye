@@ -239,7 +239,7 @@ namespace RatEye
 		/// </summary>
 		/// <param name="iconPath">The path to the icon</param>
 		/// <param name="iconType">The type of the icon</param>
-		/// <returns></returns>
+		/// <returns>Unique identifier of the icon</returns>
 		private static string GetIconKey(string iconPath, IconType iconType)
 		{
 			var iconFile = Path.GetFileName(iconPath);
