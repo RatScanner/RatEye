@@ -1,7 +1,9 @@
 ﻿using System.Drawing;
+using System.IO;
 using RatEye;
-using RatEye.Processing;
+using RatStash;
 using Xunit;
+using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEyeTest
 {
@@ -29,6 +31,8 @@ namespace RatEyeTest
 			var icon = inventory.LocateIcon(new Vector2(735, 310));
 			Assert.Equal("Peltor ComTac 2 headset", icon.Item.Name);
 			Assert.Equal("5645bcc04bdc2d363b8b4572", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_equipment_headset_comtacii.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
 		}
 
 		[Fact]
@@ -39,6 +43,15 @@ namespace RatEyeTest
 			var icon = inventory.LocateIcon(new Vector2(960, 525));
 			Assert.Equal("OKP-7 reflex sight", icon.Item.Name);
 			Assert.Equal("57486e672459770abd687134", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/DynamicIcons/24.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+		}
+
+		[Fact]
+		public void GetUnknownIconPath()
+		{
+			var path = new Item().GetIconPath();
+			Assert.Null(path);
 		}
 	}
 }

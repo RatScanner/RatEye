@@ -71,7 +71,7 @@ namespace RatEye
 		/// <para/>
 		/// <c>Dictionary&lt;iconKey, item&gt;</c>
 		/// </summary>
-		private Dictionary<string, Item> _dynamicCorrelationData = new();
+		private Dictionary<string, (Item, ItemExtraInfo)> _dynamicCorrelationData = new();
 
 		/// <summary>
 		/// Reader / Writer lock of <see cref="_staticCorrelationDataLock"/>
@@ -181,8 +181,8 @@ namespace RatEye
 			foreach (var jToken in correlations)
 			{
 				var correlation = (JObject)jToken;
-				var iconPath = correlation.GetValue("icon").ToString();
-				var uid = correlation.GetValue("uid").ToString();
+				var iconPath = correlation.GetValue("icon")?.ToString();
+				var uid = correlation.GetValue("uid")?.ToString();
 
 				var iconKey = GetIconKey(iconPath, IconType.Static);
 				correlationData[iconKey] = Config.RatStashDB.GetItem(uid);
@@ -198,7 +198,7 @@ namespace RatEye
 			var path = _config.PathConfig.DynamicCorrelationData;
 			var parsedIndex = Config.RatStashDB.ParseItemCacheIndex(path);
 			var correlationData = parsedIndex.ToDictionary(
-				x => GetIconKey(x.Key + ".png", IconType.Dynamic), x => x.Value.item);
+				x => GetIconKey(x.Key + ".png", IconType.Dynamic), x => x.Value);
 
 			_dynamicCorrelationDataLock.EnterWriteLock();
 			try { _dynamicCorrelationData = correlationData; }
@@ -237,35 +237,100 @@ namespace RatEye
 		/// <summary>
 		/// Get the unique icon key for a icon path and its type
 		/// </summary>
+		/// <remarks>
+		/// Keep this method coherent with <see cref="GetItem"/> and <see cref="GetItemExtraInfo"/>
+		/// </remarks>
 		/// <param name="iconPath">The path to the icon</param>
 		/// <param name="iconType">The type of the icon</param>
 		/// <returns>Unique identifier of the icon</returns>
-		private static string GetIconKey(string iconPath, IconType iconType)
+		private string GetIconKey(string iconPath, IconType iconType)
 		{
-			var iconFile = Path.GetFileName(iconPath);
-			return iconFile + iconType;
+			var basePath = iconType switch
+			{
+				IconType.Static => _config.PathConfig.StaticIcons,
+				IconType.Dynamic => _config.PathConfig.DynamicIcons,
+			};
+			return Path.Combine(basePath, Path.GetFileName(iconPath));
 		}
 
 		/// <summary>
 		/// Get the item, referenced by its icon key
 		/// </summary>
-		/// <param name="iconKey"></param>
+		/// <remarks>
+		/// Keep this method coherent with <see cref="GetIconKey"/>
+		/// </remarks>
+		/// <param name="iconKey">The icon key</param>
 		/// <returns>The matching item</returns>
 		internal Item GetItem(string iconKey)
 		{
-			if (iconKey.EndsWith(IconType.Static.ToString()))
+			if (iconKey.StartsWith(_config.PathConfig.StaticIcons))
 			{
 				_staticCorrelationDataLock.EnterReadLock();
 				try { return _staticCorrelationData[iconKey]; }
 				finally { _staticCorrelationDataLock.ExitReadLock(); }
 			}
 
-			if (iconKey.EndsWith(IconType.Dynamic.ToString()))
+			if (iconKey.StartsWith(_config.PathConfig.DynamicIcons))
 			{
 				_dynamicCorrelationDataLock.EnterReadLock();
-				try { return _dynamicCorrelationData[iconKey]; }
+				try { return _dynamicCorrelationData[iconKey].Item1; }
 				finally { _dynamicCorrelationDataLock.ExitReadLock(); }
 			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Get the item extra info, referenced by its icon key
+		/// </summary>
+		/// <remarks>
+		/// Keep this method coherent with <see cref="GetIconKey"/>
+		/// </remarks>
+		/// <param name="iconKey">The icon key</param>
+		/// <returns>The matching item extra info</returns>
+		internal ItemExtraInfo GetItemExtraInfo(string iconKey)
+		{
+			if (iconKey.StartsWith(_config.PathConfig.DynamicIcons))
+			{
+				_dynamicCorrelationDataLock.EnterReadLock();
+				try { return _dynamicCorrelationData[iconKey].Item2; }
+				finally { _dynamicCorrelationDataLock.ExitReadLock(); }
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Resolve the icon path for a item possible item extra info
+		/// </summary>
+		/// <param name="item">The item which icon path shall be resolved</param>
+		/// <param name="itemExtraInfo">The item extra info which shall be used to further distinguish icons</param>
+		/// <returns>The path to the icon of the item</returns>
+		internal string GetIconPath(Item item, ItemExtraInfo itemExtraInfo = null)
+		{
+			_dynamicCorrelationDataLock.EnterReadLock();
+			try
+			{
+				// We want First() to throw if there is no matching item
+				return _dynamicCorrelationData.First(x => x.Value.Item1 == item && x.Value.Item2 == itemExtraInfo).Key;
+			}
+			catch
+			{
+				// ignored
+			}
+			finally { _dynamicCorrelationDataLock.ExitReadLock(); }
+
+			_staticCorrelationDataLock.EnterReadLock();
+			try
+			{
+				// We want First() to throw if there is no matching item
+				return _staticCorrelationData.First(entry => entry.Value == item).Key;
+			}
+			catch
+			{
+				// ignored
+			}
+			finally { _staticCorrelationDataLock.ExitReadLock(); }
 
 			return null;
 		}

@@ -130,7 +130,8 @@ namespace RatEye.Processing
 			{
 				throw new Exception(
 					"No icons for template matching can be used. At least one of " +
-					"IconConfig.UseStaticIcons and IconConfig.UseDynamicIcons have to be set");
+					nameof(IconConfig.UseStaticIcons) + " and " + nameof(IconConfig.UseDynamicIcons) +
+					" have to be set");
 			}
 
 			var iconManager = _config.IconManager;
