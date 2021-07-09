@@ -192,7 +192,7 @@ namespace RatEye.Processing
 
 			var result = staticResult.confidence > dynamicResult.confidence ? staticResult : dynamicResult;
 
-			if (_detectionConfidence > result.confidence) return;
+			if (!(result.confidence > _detectionConfidence)) return;
 
 			_rotated = rotated;
 			_itemPosition = result.pos;

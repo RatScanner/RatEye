@@ -64,7 +64,7 @@ namespace RatEyeTest
 		[Fact]
 		public void ItemFHDDynamicHighlighted()
 		{
-			var image = new Bitmap("TestData/FHD_InventoryHighlighted.png");
+			var image = new Bitmap("TestData/FHD_InventoryHighlighted2.png");
 			var inventory = new Inventory(image,
 				new Config()
 				{
@@ -77,11 +77,11 @@ namespace RatEyeTest
 					}
 				});
 			var icon = inventory.LocateIcon();
-			Assert.Equal("BNTI Kirasa-N armor", icon.Item.Name);
-			Assert.Equal("5b44d22286f774172b0c9de8", icon.Item.Id);
-			var expectedPath = Path.GetFullPath("Data/DynamicIcons/17.png");
-			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
-			Assert.False(icon.Rotated);
+			Assert.Equal("MP-133 12ga shotgun", icon.Item.Name);
+			Assert.Equal("54491c4f4bdc2db1078b4568", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/DynamicIcons/121.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath(icon.ItemExtraInfo)));
+			Assert.True(icon.Rotated);
 		}
 
 		[Fact]
