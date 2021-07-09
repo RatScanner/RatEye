@@ -14,6 +14,7 @@ namespace RatEye.Processing
 		private readonly Bitmap _icon;
 		private Bitmap _scaledIcon;
 		private Item _item;
+		private ItemExtraInfo _itemExtraInfo;
 		private float _detectionConfidence;
 		private Vector2 _itemPosition;
 		private bool _rotated;
@@ -50,6 +51,18 @@ namespace RatEye.Processing
 			{
 				SatisfyState(State.Scanned);
 				return _item;
+			}
+		}
+
+		/// <summary>
+		/// The detected item extra info
+		/// </summary>
+		public ItemExtraInfo ItemExtraInfo
+		{
+			get
+			{
+				SatisfyState(State.Scanned);
+				return _itemExtraInfo;
 			}
 		}
 
@@ -185,6 +198,7 @@ namespace RatEye.Processing
 			_itemPosition = result.pos;
 			_detectionConfidence = result.confidence;
 			_item = _config.IconManager.GetItem(result.match);
+			_itemExtraInfo = _config.IconManager.GetItemExtraInfo(result.match);
 		}
 
 		private (string match, float confidence, Vector2 pos) TemplateMatchSub(Mat source, Dictionary<string, Mat> icons)
