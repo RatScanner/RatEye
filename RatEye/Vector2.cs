@@ -2,7 +2,7 @@
 
 namespace RatEye
 {
-	public class Vector2 : IEquatable<Vector2>
+	public class Vector2
 	{
 		public int X;
 		public int Y;
@@ -93,28 +93,19 @@ namespace RatEye
 
 		public static bool operator ==(Vector2 a, Vector2 b)
 		{
-			if (a is null) return false;
-			if (b is null) return false;
+			if (ReferenceEquals(a, b)) return true;
+			if (ReferenceEquals(a, null)) return false;
+			if (ReferenceEquals(b, null)) return false;
 			return a.Equals(b);
 		}
 
-		public static bool operator !=(Vector2 a, Vector2 b)
-		{
-			return !(a == b);
-		}
-
-		public bool Equals(Vector2 other)
-		{
-			if (other is null) return false;
-			if (ReferenceEquals(this, other)) return true;
-			return X == other.X && Y == other.Y;
-		}
+		public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
 
 		public override bool Equals(object obj)
 		{
-			if (obj == null) return false;
-			if (!(obj is Vector2)) return false;
-			return Equals((Vector2)obj);
+			if ((obj == null) || GetType() != obj.GetType()) return false;
+			var other = (Vector2)obj;
+			return X == other.X && Y == other.Y;
 		}
 
 		public override int GetHashCode()
