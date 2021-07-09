@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RatEye
+﻿namespace RatEye
 {
 	public class Vector2
 	{

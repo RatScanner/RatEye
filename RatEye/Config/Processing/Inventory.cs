@@ -1,6 +1,4 @@
-﻿using OpenCvSharp;
-
-namespace RatEye
+﻿namespace RatEye
 {
 	public partial class Config
 	{
