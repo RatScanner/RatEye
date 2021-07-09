@@ -166,9 +166,14 @@ namespace RatEye.Processing
 			SatisfyState(State.Default);
 
 			var item = GetMarkerPosition(GetScaledMarker(InspectionType.Item));
-			var container = GetMarkerPosition(GetScaledMarker(InspectionType.Container));
 
-			if (item.confidence > container.confidence)
+			(float confidence, Vector2 position) container = (-1f, Vector2.Zero);
+			if (_config.ProcessingConfig.InspectionConfig.EnableContainers)
+			{
+				container = GetMarkerPosition(GetScaledMarker(InspectionType.Container));
+			}
+
+			if (item.confidence >= container.confidence)
 			{
 				DetectedInspectionType = InspectionType.Item;
 				MarkerConfidence = item.confidence;
