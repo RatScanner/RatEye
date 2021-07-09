@@ -147,7 +147,7 @@ namespace RatEye.Processing
 			(string match, float confidence, Vector2 pos) staticResult = default;
 			(string match, float confidence, Vector2 pos) dynamicResult = default;
 
-			if (!(IconConfig.UseStaticIcons && IconConfig.UseDynamicIcons))
+			if (!(IconConfig.UseStaticIcons || IconConfig.UseDynamicIcons))
 			{
 				throw new Exception(
 					"No icons for template matching can be used. At least one of " +
