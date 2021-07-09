@@ -106,6 +106,7 @@ namespace RatEye.Processing
 						break;
 					case State.Scanned:
 						TemplateMatch();
+						if (_config.ProcessingConfig.IconConfig.ScanRotatedIcons) TemplateMatch(true);
 						break;
 					default:
 						throw new Exception("Cannot satisfy unknown state.");
@@ -121,8 +122,18 @@ namespace RatEye.Processing
 			_scaledIcon = _icon.Rescale(ProcessingConfig.InverseScale);
 		}
 
-		private void TemplateMatch()
+		private void TemplateMatch(bool rotated = false)
 		{
+			SatisfyState(State.Rescaled);
+
+			var source = _scaledIcon.ToMat();
+			if (rotated)
+			{
+				var rotatedIconMat = new Mat();
+				Cv2.Rotate(source, rotatedIconMat, RotateFlags.Rotate90Counterclockwise);
+				source = rotatedIconMat;
+			}
+
 			(string match, float confidence, Vector2 pos) staticResult = default;
 			(string match, float confidence, Vector2 pos) dynamicResult = default;
 
@@ -135,38 +146,38 @@ namespace RatEye.Processing
 			}
 
 			var iconManager = _config.IconManager;
+			var slotSize = rotated ? new Vector2(SlotSize.Y, SlotSize.X) : SlotSize;
 			if (IconConfig.UseStaticIcons)
 			{
-				iconManager.StaticIconsLock.EnterReadLock();
-				if (iconManager.StaticIcons.ContainsKey(SlotSize))
+				if (iconManager.StaticIcons.ContainsKey(slotSize))
 				{
-					try { staticResult = TemplateMatchSub(iconManager.StaticIcons[SlotSize]); }
+					iconManager.StaticIconsLock.EnterReadLock();
+					try { staticResult = TemplateMatchSub(source, iconManager.StaticIcons[slotSize]); }
 					finally { iconManager.StaticIconsLock.ExitReadLock(); }
 				}
 			}
 
 			if (IconConfig.UseDynamicIcons)
 			{
-				iconManager.DynamicIconsLock.EnterReadLock();
-				if (iconManager.DynamicIcons.ContainsKey(SlotSize))
+				if (iconManager.DynamicIcons.ContainsKey(slotSize))
 				{
-					try { dynamicResult = TemplateMatchSub(iconManager.DynamicIcons[SlotSize]); }
+					iconManager.DynamicIconsLock.EnterReadLock();
+					try { dynamicResult = TemplateMatchSub(source, iconManager.DynamicIcons[slotSize]); }
 					finally { iconManager.DynamicIconsLock.ExitReadLock(); }
 				}
 			}
 
 			var result = staticResult.confidence > dynamicResult.confidence ? staticResult : dynamicResult;
 
+			if (_detectionConfidence > result.confidence) return;
+
 			_itemPosition = result.pos;
 			_detectionConfidence = result.confidence;
 			_item = _config.IconManager.GetItem(result.match);
 		}
 
-		private (string match, float confidence, Vector2 pos) TemplateMatchSub(Dictionary<string, Mat> icons)
+		private (string match, float confidence, Vector2 pos) TemplateMatchSub(Mat source, Dictionary<string, Mat> icons)
 		{
-			SatisfyState(State.Rescaled);
-
-			var sourceMat = _scaledIcon.ToMat();
 			var bestMatch = "";
 			var confidence = 0f;
 			var position = Vector2.Zero;
@@ -178,7 +189,7 @@ namespace RatEye.Processing
 				mask = mask.CvtColor(ColorConversionCodes.GRAY2BGR, 3);
 				var iconNoAlpha = icon.Value.CvtColor(ColorConversionCodes.BGRA2BGR, 3);
 
-				var matches = sourceMat.MatchTemplate(iconNoAlpha, TemplateMatchModes.CCorrNormed, mask);
+				var matches = source.MatchTemplate(iconNoAlpha, TemplateMatchModes.CCorrNormed, mask);
 				matches.MinMaxLoc(out _, out var maxVal, out _, out var maxLoc);
 
 				lock (_sync)

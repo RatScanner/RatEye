@@ -26,6 +26,11 @@
 				public bool WatchDynamicIcons;
 
 				/// <summary>
+				/// Scan for 90° rotated icons
+				/// </summary>
+				public bool ScanRotatedIcons;
+
+				/// <summary>
 				/// Create a new icon config instance based on the state of <see cref="Config.GlobalConfig"/>
 				/// </summary>
 				/// <param name="basedOnDefault">
@@ -46,6 +51,7 @@
 					UseStaticIcons = globalConfig.UseStaticIcons;
 					UseDynamicIcons = globalConfig.UseDynamicIcons;
 					WatchDynamicIcons = globalConfig.WatchDynamicIcons;
+					ScanRotatedIcons = globalConfig.ScanRotatedIcons;
 				}
 
 				private void SetDefaults()
@@ -53,6 +59,7 @@
 					UseStaticIcons = false;
 					UseDynamicIcons = false;
 					WatchDynamicIcons = true;
+					ScanRotatedIcons = true;
 				}
 
 				internal static void SetStaticDefaults() { }

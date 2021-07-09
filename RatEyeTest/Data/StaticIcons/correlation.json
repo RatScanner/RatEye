@@ -2,5 +2,9 @@
     {
         "icon": "item_equipment_headset_comtacii.png",
         "uid": "5645bcc04bdc2d363b8b4572"
-    }
+    },
+	{
+		"icon": "item_water_bottle_loot.png",
+		"uid": "5448fee04bdc2dbc018b4567"
+	}
 ]

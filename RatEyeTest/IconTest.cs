@@ -36,6 +36,17 @@ namespace RatEyeTest
 		}
 
 		[Fact]
+		public void ItemFHDStaticRotated()
+		{
+			var image = new Bitmap("TestData/FHD_Inventory2.png");
+			var inventory = new Inventory(image);
+			var icon = inventory.LocateIcon(new Vector2(1080, 580));
+			Assert.Equal("5448fee04bdc2dbc018b4567", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_water_bottle_loot.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+		}
+
+		[Fact]
 		public void ItemFHDDynamic()
 		{
 			var image = new Bitmap("TestData/FHD_Inventory2.png");
