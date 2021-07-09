@@ -10,7 +10,7 @@ namespace RatEye
 	/// <summary>
 	/// Class for logging events and control flow of RatEye
 	/// </summary>
-	public static class Logger
+	internal static class Logger
 	{
 		private static List<string> _backlog = new();
 
