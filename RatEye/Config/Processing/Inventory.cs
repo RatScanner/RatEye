@@ -1,4 +1,6 @@
-﻿namespace RatEye
+﻿using OpenCvSharp;
+
+namespace RatEye
 {
 	public partial class Config
 	{
@@ -9,6 +11,20 @@
 			/// </summary>
 			public class Inventory
 			{
+				/// <summary>
+				/// Minimum color for thresholding the grid
+				/// </summary>
+				public (int blue, int green, int red) MinGridColor;
+
+				/// <summary>
+				/// Maximum color for thresholding the grid
+				/// </summary>
+				/// <remarks>
+				/// Recommended <c>(89, 89, 89)</c> when processing
+				/// highlighted items, else <c>(108, 117, 112)</c>.
+				/// </remarks>
+				public (int blue, int green, int red) MaxGridColor;
+
 				/// <summary>
 				/// Create a new inventory config instance based on the state of <see cref="Config.GlobalConfig"/>
 				/// </summary>
@@ -26,9 +42,15 @@
 					}
 
 					var globalConfig = GlobalConfig.ProcessingConfig.InventoryConfig;
+					MinGridColor = globalConfig.MinGridColor;
+					MaxGridColor = globalConfig.MaxGridColor;
 				}
 
-				private void SetDefaults() { }
+				private void SetDefaults()
+				{
+					MinGridColor = (84, 81, 73);
+					MaxGridColor = (108, 117, 112);
+				}
 
 				internal static void SetStaticDefaults() { }
 

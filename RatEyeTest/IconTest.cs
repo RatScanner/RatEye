@@ -62,6 +62,29 @@ namespace RatEyeTest
 		}
 
 		[Fact]
+		public void ItemFHDDynamicHighlighted()
+		{
+			var image = new Bitmap("TestData/FHD_InventoryHighlighted.png");
+			var inventory = new Inventory(image,
+				new Config()
+				{
+					ProcessingConfig = new Config.Processing()
+					{
+						InventoryConfig = new Config.Processing.Inventory()
+						{
+							MaxGridColor = (89, 89, 89)
+						}
+					}
+				});
+			var icon = inventory.LocateIcon();
+			Assert.Equal("BNTI Kirasa-N armor", icon.Item.Name);
+			Assert.Equal("5b44d22286f774172b0c9de8", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/DynamicIcons/17.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.False(icon.Rotated);
+		}
+
+		[Fact]
 		public void GetUnknownIconPath()
 		{
 			var path = new Item().GetIconPath();
