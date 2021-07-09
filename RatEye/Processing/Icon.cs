@@ -16,6 +16,7 @@ namespace RatEye.Processing
 		private Item _item;
 		private float _detectionConfidence;
 		private Vector2 _itemPosition;
+		private bool _rotated;
 
 		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
 		private Config.Processing.Icon IconConfig => ProcessingConfig.IconConfig;
@@ -73,6 +74,15 @@ namespace RatEye.Processing
 			{
 				SatisfyState(State.Scanned);
 				return _itemPosition;
+			}
+		}
+
+		public bool Rotated
+		{
+			get
+			{
+				SatisfyState(State.Scanned);
+				return _rotated;
 			}
 		}
 
@@ -171,6 +181,7 @@ namespace RatEye.Processing
 
 			if (_detectionConfidence > result.confidence) return;
 
+			_rotated = rotated;
 			_itemPosition = result.pos;
 			_detectionConfidence = result.confidence;
 			_item = _config.IconManager.GetItem(result.match);

@@ -33,6 +33,7 @@ namespace RatEyeTest
 			Assert.Equal("5645bcc04bdc2d363b8b4572", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_equipment_headset_comtacii.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.False(icon.Rotated);
 		}
 
 		[Fact]
@@ -44,6 +45,7 @@ namespace RatEyeTest
 			Assert.Equal("5448fee04bdc2dbc018b4567", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_water_bottle_loot.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.True(icon.Rotated);
 		}
 
 		[Fact]
@@ -56,6 +58,7 @@ namespace RatEyeTest
 			Assert.Equal("57486e672459770abd687134", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/DynamicIcons/24.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.False(icon.Rotated);
 		}
 
 		[Fact]
