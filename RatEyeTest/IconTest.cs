@@ -3,6 +3,7 @@ using System.IO;
 using RatEye;
 using RatStash;
 using Xunit;
+using Color = System.Drawing.Color;
 using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEyeTest
@@ -72,7 +73,7 @@ namespace RatEyeTest
 					{
 						InventoryConfig = new Config.Processing.Inventory()
 						{
-							MaxGridColor = (89, 89, 89)
+							MaxGridColor = Color.FromArgb(89, 89, 89)
 						}
 					}
 				});

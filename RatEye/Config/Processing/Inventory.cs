@@ -1,4 +1,6 @@
-﻿namespace RatEye
+﻿using System.Drawing;
+
+namespace RatEye
 {
 	public partial class Config
 	{
@@ -12,16 +14,16 @@
 				/// <summary>
 				/// Minimum color for thresholding the grid
 				/// </summary>
-				public (int blue, int green, int red) MinGridColor;
+				public Color MinGridColor;
 
 				/// <summary>
 				/// Maximum color for thresholding the grid
 				/// </summary>
 				/// <remarks>
-				/// Recommended <c>(89, 89, 89)</c> when processing
-				/// highlighted items, else <c>(108, 117, 112)</c>.
+				/// Recommended <c>Color.FromArgb(89, 89, 89)</c> when processing
+				/// highlighted items, else <c>Color.FromArgb(112, 117, 108)</c>.
 				/// </remarks>
-				public (int blue, int green, int red) MaxGridColor;
+				public Color MaxGridColor;
 
 				/// <summary>
 				/// Create a new inventory config instance based on the state of <see cref="Config.GlobalConfig"/>
@@ -46,8 +48,8 @@
 
 				private void SetDefaults()
 				{
-					MinGridColor = (84, 81, 73);
-					MaxGridColor = (108, 117, 112);
+					MinGridColor = Color.FromArgb(73, 81, 84);
+					MaxGridColor = Color.FromArgb(112, 117, 108);
 				}
 
 				internal static void SetStaticDefaults() { }

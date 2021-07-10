@@ -72,9 +72,11 @@ namespace RatEye.Processing
 
 		private void DetectInventoryGrid()
 		{
-			var (minB, minG, minR) = _config.ProcessingConfig.InventoryConfig.MinGridColor;
-			var (maxB, maxG, maxR) = _config.ProcessingConfig.InventoryConfig.MaxGridColor;
-			var colorFilter = _image.InRange(new Scalar(minB, minG, minR), new Scalar(maxB, maxG, maxR));
+			var minGridColor = _config.ProcessingConfig.InventoryConfig.MinGridColor;
+			var maxGridColor = _config.ProcessingConfig.InventoryConfig.MaxGridColor;
+			var minGridScalar = Scalar.FromRgb(minGridColor.R, minGridColor.G, minGridColor.B);
+			var maxGridScalar = Scalar.FromRgb(maxGridColor.R, maxGridColor.G, maxGridColor.B);
+			var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
 
 			var scaledSlotSize = ProcessingConfig.ScaledSlotSize;
 
