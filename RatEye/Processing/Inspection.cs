@@ -112,6 +112,11 @@ namespace RatEye.Processing
 		}
 
 		/// <summary>
+		/// The path to the icon of the detected item
+		/// </summary>
+		public string IconPath => _config.IconManager.GetIconPath(Item, new ItemExtraInfo());
+
+		/// <summary>
 		/// Constructor for inspection view processing object
 		/// </summary>
 		/// <param name="image">Image of the inspection view which will be processed</param>

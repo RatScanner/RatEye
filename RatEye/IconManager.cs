@@ -347,7 +347,7 @@ namespace RatEye
 		/// <param name="item">The item which icon path shall be resolved</param>
 		/// <param name="itemExtraInfo">The item extra info which shall be used to further distinguish icons</param>
 		/// <returns>The path to the icon of the item</returns>
-		internal string GetIconPath(Item item, ItemExtraInfo itemExtraInfo = null)
+		internal string GetIconPath(Item item, ItemExtraInfo itemExtraInfo)
 		{
 			_dynamicCorrelationDataLock.EnterReadLock();
 			try

@@ -124,7 +124,7 @@ namespace RatEye
 		public Config Apply()
 		{
 			RatStashDB = Database.FromFile(Path.ItemData);
-			IconManager = new IconManager();
+			IconManager = new IconManager(this);
 
 			Config.GlobalConfig.PathConfig.Apply();
 			Config.GlobalConfig.ProcessingConfig.Apply();

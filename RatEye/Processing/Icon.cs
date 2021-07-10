@@ -67,6 +67,11 @@ namespace RatEye.Processing
 		}
 
 		/// <summary>
+		/// The path to the icon of the detected item
+		/// </summary>
+		public string IconPath => _config.IconManager.GetIconPath(Item, ItemExtraInfo ?? new ItemExtraInfo());
+
+		/// <summary>
 		/// Confidence with which the <see cref="Item"/> was detected/>
 		/// </summary>
 		public float DetectionConfidence

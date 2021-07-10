@@ -33,7 +33,7 @@ namespace RatEyeTest
 			Assert.Equal("Peltor ComTac 2 headset", icon.Item.Name);
 			Assert.Equal("5645bcc04bdc2d363b8b4572", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_equipment_headset_comtacii.png");
-			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.False(icon.Rotated);
 		}
 
@@ -45,7 +45,7 @@ namespace RatEyeTest
 			var icon = inventory.LocateIcon(new Vector2(1080, 580));
 			Assert.Equal("5448fee04bdc2dbc018b4567", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_water_bottle_loot.png");
-			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.True(icon.Rotated);
 		}
 
@@ -58,7 +58,7 @@ namespace RatEyeTest
 			Assert.Equal("OKP-7 reflex sight", icon.Item.Name);
 			Assert.Equal("57486e672459770abd687134", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/DynamicIcons/24.png");
-			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath()));
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.False(icon.Rotated);
 		}
 
@@ -73,23 +73,17 @@ namespace RatEyeTest
 					{
 						InventoryConfig = new Config.Processing.Inventory()
 						{
-							MaxGridColor = Color.FromArgb(89, 89, 89)
+							MaxGridColor = Color.FromArgb(89, 89, 89),
+							OptimizeHighlighted = true,
 						}
 					}
-				});
+				}.Apply());
 			var icon = inventory.LocateIcon();
 			Assert.Equal("MP-133 12ga shotgun", icon.Item.Name);
 			Assert.Equal("54491c4f4bdc2db1078b4568", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/DynamicIcons/121.png");
-			Assert.Equal(expectedPath, Path.GetFullPath(icon.Item.GetIconPath(icon.ItemExtraInfo)));
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.True(icon.Rotated);
-		}
-
-		[Fact]
-		public void GetUnknownIconPath()
-		{
-			var path = new Item().GetIconPath();
-			Assert.Null(path);
 		}
 	}
 }

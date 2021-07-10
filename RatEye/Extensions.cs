@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using RatStash;
 using Color = System.Drawing.Color;
 using Point = System.Drawing.Point;
 using Size = OpenCvSharp.Size;
@@ -231,15 +230,6 @@ namespace RatEye
 			}
 
 			return (float)(target.Length - distance[currentRow, m]) / target.Length;
-		}
-
-		#endregion
-
-		#region Item Extensions
-
-		public static string GetIconPath(this Item item, ItemExtraInfo itemExtraInfo = null)
-		{
-			return Config.GlobalConfig.IconManager.GetIconPath(item, itemExtraInfo ?? new ItemExtraInfo());
 		}
 
 		#endregion
