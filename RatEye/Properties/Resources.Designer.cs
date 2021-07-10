@@ -63,6 +63,16 @@ namespace RatEye.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] gridCell {
+            get {
+                object obj = ResourceManager.GetObject("gridCell", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] searchIcon {
             get {
                 object obj = ResourceManager.GetObject("searchIcon", resourceCulture);

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OpenCvSharp;
+using OpenCvSharp.Extensions;
+using RatEye.Properties;
 using RatStash;
 
 namespace RatEye
@@ -114,7 +116,7 @@ namespace RatEye
 		{
 			LoadDynamicCorrelationData();
 
-			var temp = LoadIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic, 2);
+			var temp = LoadIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic);//, 2);
 			DynamicIconsLock.EnterWriteLock();
 			try { DynamicIcons = temp; }
 			finally { DynamicIconsLock.ExitWriteLock(); }
@@ -136,24 +138,29 @@ namespace RatEye
 			{
 				var iconPathArray = Directory.GetFiles(folderPath, "*.png");
 
-				Parallel.ForEach(iconPathArray, iconPath =>
+				//Parallel.ForEach(iconPathArray, iconPath =>
+				foreach (var iconPath in iconPathArray)
 				{
 					var iconKey = GetIconKey(iconPath, iconType);
 					var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
 
-					// Do not add the icon to the list, if its size cannot be converted to slots
-					if (!IsValidPixelSize(mat.Width) || !IsValidPixelSize(mat.Height)) return;
+					var item = GetItem(iconKey);
+					if (item == null) continue;
+					var icon = GetIconWithBackground(mat, item);
 
-					var size = new Vector2(PixelsToSlots(mat.Width), PixelsToSlots(mat.Height));
+					// Do not add the icon to the list, if its size cannot be converted to slots
+					if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) continue;
+
+					var size = new Vector2(PixelsToSlots(icon.Width), PixelsToSlots(icon.Height));
 					lock (loadedIcons)
 					{
 						if (!loadedIcons.ContainsKey(size)) { loadedIcons.Add(size, new Dictionary<string, Mat>()); }
 
 						// Add icon to icon and path dictionary
-						loadedIcons[size][iconKey] = mat;
+						loadedIcons[size][iconKey] = icon;
 						_iconPaths[iconKey] = iconPath;
 					}
-				});
+				}//);
 			}
 			catch (Exception e)
 			{
@@ -166,6 +173,40 @@ namespace RatEye
 			}
 
 			return loadedIcons;
+		}
+
+		/// <summary>
+		/// Generate the background of an item as it would appear in game
+		/// </summary>
+		/// <param name="transparentIcon">The transparent icon of the item</param>
+		/// <param name="item">The item of the icon</param>
+		/// <returns>8UC3 matrix of transparent icon with blended background</returns>
+		private Mat GetIconWithBackground(Mat transparentIcon, Item item)
+		{
+			// Generate layers
+			var black = new Scalar(0, 0, 0, 255);
+			var background = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(black);
+
+			var gridCell = new Bitmap(new MemoryStream(Resources.gridCell)).ToMat();
+			gridCell = gridCell.Repeat(PixelsToSlots(transparentIcon.Width), PixelsToSlots(transparentIcon.Height), -1, -1);
+
+			var bgColor = item.BackgroundColor.ToColor();
+			var bgAlpha = _config.ProcessingConfig.InventoryConfig.BackgroundAlpha;
+			var bgScalar = new Scalar(bgColor.B, bgColor.G, bgColor.R, bgAlpha);
+			var gridColor = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(bgScalar);
+
+			var border = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 0));
+			var borderRect = new Rect(Vector2.Zero, transparentIcon.Size());
+			border.Rectangle(borderRect, _config.ProcessingConfig.InventoryConfig.GridColor);
+
+			// Blend layers
+			var result = background.AlphaBlend(gridCell);
+			result = result.AlphaBlend(gridColor);
+			result = result.AlphaBlend(border);
+			result = result.AlphaBlend(transparentIcon);
+
+			// Convert to 8UC3 and return
+			return result.CvtColor(ColorConversionCodes.BGRA2BGR, 3);
 		}
 
 		#endregion

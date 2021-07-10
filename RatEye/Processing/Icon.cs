@@ -209,12 +209,7 @@ namespace RatEye.Processing
 
 			Parallel.ForEach(icons, icon =>
 			{
-				// TODO Prepare masks when loading icons
-				var mask = icon.Value.InRange(new Scalar(0, 0, 0, 128), new Scalar(255, 255, 255, 255));
-				mask = mask.CvtColor(ColorConversionCodes.GRAY2BGR, 3);
-				var iconNoAlpha = icon.Value.CvtColor(ColorConversionCodes.BGRA2BGR, 3);
-
-				var matches = source.MatchTemplate(iconNoAlpha, TemplateMatchModes.CCorrNormed, mask);
+				var matches = source.MatchTemplate(icon.Value, TemplateMatchModes.CCorrNormed);
 				matches.MinMaxLoc(out _, out var maxVal, out _, out var maxLoc);
 
 				lock (_sync)

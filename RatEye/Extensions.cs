@@ -134,6 +134,65 @@ namespace RatEye
 
 		#endregion
 
+		#region Mat Extensions
+
+		/// <summary>
+		/// Alpha blend two 8UC4 matrices
+		/// </summary>
+		/// <param name="bottom">Bottom matrix</param>
+		/// <param name="top">Top matrix</param>
+		/// <returns>A blended matrix with no transparency</returns>
+		internal static Mat AlphaBlend(this Mat bottom, Mat top)
+		{
+			var output = new Mat(bottom.Size(), MatType.CV_8UC4);
+
+			// Extract top alpha
+			var topAlpha = top.ExtractChannel(3);
+			topAlpha.ConvertTo(topAlpha, MatType.CV_32FC1);
+
+			// Extract bottom alpha
+			var bottomAlpha = bottom.ExtractChannel(3);
+			bottomAlpha.ConvertTo(bottomAlpha, MatType.CV_32FC1);
+			// Subtract top alpha to overlay top
+			bottomAlpha = bottomAlpha.Subtract(topAlpha);
+
+			// Blend both mats
+			Cv2.BlendLinear(bottom, top, bottomAlpha, topAlpha, output);
+
+			// Set opacity to max
+			var clear = new Mat(bottom.Size(), MatType.CV_8UC4).SetTo(new Scalar(1, 1, 1, 0));
+			var full = new Mat(bottom.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 255));
+			output = output.Mul(clear).Add(full);
+
+			return output;
+		}
+
+		/// <summary>
+		/// Replicates the input matrix the specified number of times in the horizontal and/or vertical direction
+		/// </summary>
+		/// <param name="src">Source matrix</param>
+		/// <param name="nx">How many times the src is repeated along the horizontal axis</param>
+		/// <param name="ny">How many times the src is repeated along the vertical axis</param>
+		/// <param name="dx">Horizontal left-padding/param>
+		/// <param name="dy">Vertical top-padding</param>
+		/// <returns>The repeated matrix</returns>
+		internal static Mat Repeat(this Mat src, int nx, int ny, int dx, int dy)
+		{
+			var dst = new Mat((src.Rows + dy) * ny - dy, (src.Cols + dx) * nx - dx, src.Type());
+			for (var iy = 0; iy < ny; ++iy)
+			{
+				for (var ix = 0; ix < nx; ++ix)
+				{
+					var roi = new Rect((src.Cols + dx) * ix, (src.Rows + dy) * iy, src.Cols, src.Rows);
+					src.CopyTo(dst[roi]);
+				}
+			}
+
+			return dst;
+		}
+
+		#endregion
+
 		#region String Extensions
 
 		public static float NormedLevenshteinDistance(this string source, string target)

@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using OpenCvSharp;
 
 namespace RatEye
 {
@@ -11,6 +12,16 @@ namespace RatEye
 			/// </summary>
 			public class Inventory
 			{
+				/// <summary>
+				/// Color of the grid as defined by EFT
+				/// </summary>
+				internal Scalar GridColor => new(84, 81, 73, 255);
+
+				/// <summary>
+				/// Alpha value of item background colors as defined by EFT
+				/// </summary>
+				internal int BackgroundAlpha => 77;
+
 				/// <summary>
 				/// Minimum color for thresholding the grid
 				/// </summary>
