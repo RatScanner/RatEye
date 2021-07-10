@@ -9,6 +9,7 @@ using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using RatEye.Properties;
 using RatStash;
+using Color = RatStash.Color;
 
 namespace RatEye
 {
@@ -190,7 +191,8 @@ namespace RatEye
 			var gridCell = new Bitmap(new MemoryStream(Resources.gridCell)).ToMat();
 			gridCell = gridCell.Repeat(PixelsToSlots(transparentIcon.Width), PixelsToSlots(transparentIcon.Height), -1, -1);
 
-			var bgColor = item.BackgroundColor.ToColor();
+			var optimizeHighlighted = _config.ProcessingConfig.InventoryConfig.OptimizeHighlighted;
+			var bgColor = (optimizeHighlighted ? TaxonomyColor.Default : item.BackgroundColor).ToColor();
 			var bgAlpha = _config.ProcessingConfig.InventoryConfig.BackgroundAlpha;
 			var bgScalar = new Scalar(bgColor.B, bgColor.G, bgColor.R, bgAlpha);
 			var gridColor = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(bgScalar);

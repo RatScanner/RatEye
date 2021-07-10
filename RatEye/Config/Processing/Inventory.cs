@@ -37,6 +37,11 @@ namespace RatEye
 				public Color MaxGridColor;
 
 				/// <summary>
+				/// If <see langword="true"/>, all processing will be optimized for highlighted items
+				/// </summary>
+				public bool OptimizeHighlighted;
+
+				/// <summary>
 				/// Create a new inventory config instance based on the state of <see cref="Config.GlobalConfig"/>
 				/// </summary>
 				/// <param name="basedOnDefault">
@@ -55,12 +60,14 @@ namespace RatEye
 					var globalConfig = GlobalConfig.ProcessingConfig.InventoryConfig;
 					MinGridColor = globalConfig.MinGridColor;
 					MaxGridColor = globalConfig.MaxGridColor;
+					OptimizeHighlighted = globalConfig.OptimizeHighlighted;
 				}
 
 				private void SetDefaults()
 				{
 					MinGridColor = Color.FromArgb(73, 81, 84);
 					MaxGridColor = Color.FromArgb(112, 117, 108);
+					OptimizeHighlighted = false;
 				}
 
 				internal static void SetStaticDefaults() { }
