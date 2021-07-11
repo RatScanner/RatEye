@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -139,18 +140,17 @@ namespace RatEye
 			{
 				var iconPathArray = Directory.GetFiles(folderPath, "*.png");
 
-				//Parallel.ForEach(iconPathArray, iconPath =>
-				foreach (var iconPath in iconPathArray)
+				Parallel.ForEach(iconPathArray, iconPath =>
 				{
 					var iconKey = GetIconKey(iconPath, iconType);
 					var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
 
 					var item = GetItem(iconKey);
-					if (item == null) continue;
+					if (item == null) return;
 					var icon = GetIconWithBackground(mat, item);
 
 					// Do not add the icon to the list, if its size cannot be converted to slots
-					if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) continue;
+					if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) return;
 
 					var size = new Vector2(PixelsToSlots(icon.Width), PixelsToSlots(icon.Height));
 					lock (loadedIcons)
@@ -161,7 +161,7 @@ namespace RatEye
 						loadedIcons[size][iconKey] = icon;
 						_iconPaths[iconKey] = iconPath;
 					}
-				}//);
+				});
 			}
 			catch (Exception e)
 			{
