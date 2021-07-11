@@ -214,15 +214,17 @@ namespace RatEye.Processing
 
 			Parallel.ForEach(icons, icon =>
 			{
-				var matches = source.MatchTemplate(icon.Value, TemplateMatchModes.CCorrNormed);
-				matches.MinMaxLoc(out _, out var maxVal, out _, out var maxLoc);
+				var matches = source.MatchTemplate(icon.Value, TemplateMatchModes.SqDiffNormed);
+				matches.MinMaxLoc(out var minVal, out _, out var minLoc, out _);
 
 				lock (_sync)
 				{
-					if (!(maxVal > confidence)) return;
-					confidence = (float)maxVal;
+					minVal = 1 - minVal;
+					if (!(minVal > confidence)) return;
+					confidence = (float)minVal;
 					bestMatch = icon.Key;
-					position = new Vector2(maxLoc);
+					position = new Vector2(minLoc);
+					Logger.LogDebugMat(icon.Value, $"conf-{confidence}.png");
 				}
 			});
 
