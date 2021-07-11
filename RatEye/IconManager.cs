@@ -192,7 +192,7 @@ namespace RatEye
 			gridCell = gridCell.Repeat(PixelsToSlots(transparentIcon.Width), PixelsToSlots(transparentIcon.Height), -1, -1);
 
 			var optimizeHighlighted = _config.ProcessingConfig.InventoryConfig.OptimizeHighlighted;
-			var bgColor = (optimizeHighlighted ? TaxonomyColor.Default : item.BackgroundColor).ToColor();
+			var bgColor = optimizeHighlighted ? new Color(255, 255, 255) : item.BackgroundColor.ToColor();
 			var bgAlpha = _config.ProcessingConfig.InventoryConfig.BackgroundAlpha;
 			var bgScalar = new Scalar(bgColor.B, bgColor.G, bgColor.R, bgAlpha);
 			var gridColor = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(bgScalar);
