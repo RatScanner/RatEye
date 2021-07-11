@@ -31,7 +31,10 @@ namespace RatEye
 		/// <para/>
 		/// <c>Dictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;</c>
 		/// </summary>
-		/// <remarks>Use the <see cref="StaticIconsLock"/> when accessing this collection.</remarks>
+		/// <remarks>
+		/// Use the <see cref="StaticIconsLock"/> when accessing this collection.
+		/// Icon is of type 8UC3.
+		/// </remarks>
 		internal Dictionary<Vector2, Dictionary<string, Mat>> StaticIcons = new();
 
 		/// <summary>
@@ -42,7 +45,10 @@ namespace RatEye
 		/// <para/>
 		/// <c>ConcurrentDictionary&lt;slotSize, Dictionary&lt;iconKey, icon&gt;&gt;</c>
 		/// </summary>
-		/// <remarks>Use the <see cref="DynamicIconsLock"/> when accessing this collection.</remarks>
+		/// <remarks>
+		/// Use the <see cref="DynamicIconsLock"/> when accessing this collection.
+		/// Icon is of type 8UC3.
+		/// </remarks>
 		internal Dictionary<Vector2, Dictionary<string, Mat>> DynamicIcons = new();
 
 		/// <summary>
