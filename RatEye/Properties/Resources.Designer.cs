@@ -63,9 +63,9 @@ namespace RatEye.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] gridCell {
+        internal static byte[] cell_full_border {
             get {
-                object obj = ResourceManager.GetObject("gridCell", resourceCulture);
+                object obj = ResourceManager.GetObject("cell_full_border", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -73,9 +73,229 @@ namespace RatEye.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] searchIcon {
+        internal static byte[] icon_mod_aux {
             get {
-                object obj = ResourceManager.GetObject("searchIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("icon_mod_aux", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_barrel {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_barrel", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_bipod {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_bipod", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_charge {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_charge", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_flashlight {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_flashlight", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_gasblock {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_gasblock", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_handguard {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_handguard", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_ironsight {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_ironsight", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_launcher {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_launcher", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_lightlaser {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_lightlaser", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_magazine {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_magazine", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_mount {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_mount", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_muzzle {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_muzzle", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_pistol_grip {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_pistol_grip", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_railcovers {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_railcovers", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_receiver {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_receiver", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_sight {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_sight", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_stock {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_stock", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_mod_tactical {
+            get {
+                object obj = ResourceManager.GetObject("icon_mod_tactical", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] icon_search {
+            get {
+                object obj = ResourceManager.GetObject("icon_search", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] mod_gear {
+            get {
+                object obj = ResourceManager.GetObject("mod_gear", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] mod_generic {
+            get {
+                object obj = ResourceManager.GetObject("mod_generic", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] mod_vital {
+            get {
+                object obj = ResourceManager.GetObject("mod_vital", resourceCulture);
                 return ((byte[])(obj));
             }
         }

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Threading;
+using OpenCvSharp;
 
 namespace RatEye
 {
@@ -34,10 +35,15 @@ namespace RatEye
 
 		internal static void LogDebugMat(OpenCvSharp.Mat mat, string fileName = "mat")
 		{
-			if (Config.GlobalConfig.LogDebug)
+			if (!Config.GlobalConfig.LogDebug) return;
+
+			var tmp = mat;
+			if (mat.Type() == MatType.CV_32FC1)
 			{
-				mat.SaveImage(GetUniquePath(Config.GlobalConfig.PathConfig.Debug, fileName, ".png"));
+				tmp = new Mat(mat.Size(), MatType.CV_8UC1);
+				mat.ConvertTo(tmp, MatType.CV_8UC1, 255);
 			}
+			tmp.SaveImage(GetUniquePath(Config.GlobalConfig.PathConfig.Debug, fileName, ".png"));
 		}
 
 		private static string GetUniquePath(string basePath, string fileName, string extension)

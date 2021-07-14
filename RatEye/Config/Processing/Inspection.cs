@@ -116,7 +116,7 @@ namespace RatEye
 
 				private void SetDefaults()
 				{
-					Marker = new Bitmap(new MemoryStream(Resources.searchIcon));
+					Marker = new Bitmap(new MemoryStream(Resources.icon_search));
 					MarkerThreshold = 0.95f;
 					EnableContainers = true;
 					MarkerItemScale = 17f / 19f;

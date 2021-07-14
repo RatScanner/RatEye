@@ -194,7 +194,7 @@ namespace RatEye
 			var black = new Scalar(0, 0, 0, 255);
 			var background = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(black);
 
-			var gridCell = new Bitmap(new MemoryStream(Resources.gridCell)).ToMat();
+			var gridCell = new Bitmap(new MemoryStream(Resources.cell_full_border)).ToMat();
 			gridCell = gridCell.Repeat(PixelsToSlots(transparentIcon.Width), PixelsToSlots(transparentIcon.Height), -1, -1);
 
 			var optimizeHighlighted = _config.ProcessingConfig.InventoryConfig.OptimizeHighlighted;
@@ -208,13 +208,86 @@ namespace RatEye
 			border.Rectangle(borderRect, _config.ProcessingConfig.InventoryConfig.GridColor);
 
 			// Blend layers
-			var result = background.AlphaBlend(gridCell);
-			result = result.AlphaBlend(gridColor);
-			result = result.AlphaBlend(border);
-			result = result.AlphaBlend(transparentIcon);
+			var result = gridCell.AlphaBlend(background).RemoveTransparency();
+			result = gridColor.AlphaBlend(result);
+			result = border.AlphaBlend(result);
+			result = transparentIcon.AlphaBlend(result);
+
+			// Add weapon mod icon
+			if (item is WeaponMod)
+			{
+				var weaponModIcon = GetWeaponModIcon(item);
+				var top = result.Height - weaponModIcon.Height - 2;
+				var right = result.Width - weaponModIcon.Width - 2;
+				weaponModIcon = weaponModIcon.AddPadding(2, top, right, 2);
+				result = weaponModIcon.AlphaBlend(result);
+			}
 
 			// Convert to 8UC3 and return
 			return result.CvtColor(ColorConversionCodes.BGRA2BGR, 3);
+		}
+
+		private Mat GetWeaponModIcon(Item item)
+		{
+			var bg = GetWeaponModIconBackground(item);
+			var fg = GetWeaponModIconForeground(item);
+
+			var paddedBg = bg.AddPadding(bg.Width, bg.Height, bg.Width, bg.Height);
+
+			var hPadding = (bg.Width * 3) - fg.Width;
+			var vPadding = (bg.Height * 3) - fg.Height;
+
+			var left = hPadding / 2 + hPadding % 2;
+			var top = vPadding / 2 + vPadding % 2;
+			var right = hPadding / 2;
+			var bottom = vPadding / 2;
+			var paddedFg = fg.AddPadding(left, top, right, bottom);
+
+			var blended = paddedFg.AlphaBlend(paddedBg);
+			var croppedBlended = blended.RemovePadding(bg.Width, bg.Height, bg.Width, bg.Height);
+			return croppedBlended;
+		}
+
+		private Mat GetWeaponModIconBackground(Item item)
+		{
+			var background = item switch
+			{
+				EssentialMod => Resources.mod_vital,
+				FunctionalMod => Resources.mod_generic,
+				GearMod => Resources.mod_gear,
+				_ => null,
+			};
+			if (background == null) return null;
+			return new Bitmap(new MemoryStream(background)).ToMat();
+		}
+
+		private Mat GetWeaponModIconForeground(Item item)
+		{
+			var foreground = item switch
+			{
+				AuxiliaryMod => Resources.icon_mod_aux,
+				Barrel => Resources.icon_mod_barrel,
+				Bipod => Resources.icon_mod_bipod,
+				ChargingHandle => Resources.icon_mod_charge,
+				Flashlight => Resources.icon_mod_flashlight,
+				GasBlock => Resources.icon_mod_gasblock,
+				Handguard => Resources.icon_mod_handguard,
+				IronSight => Resources.icon_mod_ironsight,
+				Launcher => Resources.icon_mod_launcher,
+				LaserDesignator => Resources.icon_mod_lightlaser,
+				Magazine => Resources.icon_mod_magazine,
+				Mount => Resources.icon_mod_mount,
+				MuzzleDevice => Resources.icon_mod_muzzle,
+				PistolGrip => Resources.icon_mod_pistol_grip,
+				RailCovers => Resources.icon_mod_railcovers,
+				Receiver => Resources.icon_mod_receiver,
+				Sights => Resources.icon_mod_sight,
+				Stock => Resources.icon_mod_stock,
+				Foregrip => Resources.icon_mod_tactical,
+				_ => null,
+			};
+			if (foreground == null) return null;
+			return new Bitmap(new MemoryStream(foreground)).ToMat();
 		}
 
 		#endregion

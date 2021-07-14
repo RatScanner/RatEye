@@ -138,32 +138,74 @@ namespace RatEye
 		/// <summary>
 		/// Alpha blend two 8UC4 matrices
 		/// </summary>
-		/// <param name="bottom">Bottom matrix</param>
-		/// <param name="top">Top matrix</param>
-		/// <returns>A blended matrix with no transparency</returns>
-		internal static Mat AlphaBlend(this Mat bottom, Mat top)
+		/// <param name="a">Top matrix of type 8UC4</param>
+		/// <param name="b">Bottom matrix of type 8UC4</param>
+		/// <returns>A blended matrix of type 8UC4</returns>
+		internal static Mat AlphaBlend(this Mat a, Mat b)
 		{
-			var output = new Mat(bottom.Size(), MatType.CV_8UC4);
+			// Extract a alpha
+			var aAlpha = a.ExtractChannel(3);
+			aAlpha.ConvertTo(aAlpha, MatType.CV_32FC1, 1 / 255f);
 
-			// Extract top alpha
-			var topAlpha = top.ExtractChannel(3);
-			topAlpha.ConvertTo(topAlpha, MatType.CV_32FC1);
+			// Extract b alpha
+			var bAlpha = b.ExtractChannel(3);
+			bAlpha.ConvertTo(bAlpha, MatType.CV_32FC1, 1 / 255f);
 
-			// Extract bottom alpha
-			var bottomAlpha = bottom.ExtractChannel(3);
-			bottomAlpha.ConvertTo(bottomAlpha, MatType.CV_32FC1);
-			// Subtract top alpha to overlay top
-			bottomAlpha = bottomAlpha.Subtract(topAlpha);
+			var invBottomAlpha = Mat.Ones(aAlpha.Size(), MatType.CV_32FC1).Subtract(aAlpha).ToMat();
 
-			// Blend both mats
-			Cv2.BlendLinear(bottom, top, bottomAlpha, topAlpha, output);
+			var aColor = a.RemoveChannel4();
+			aColor.ConvertTo(aColor, MatType.CV_32FC3, 1 / 255f);
 
-			// Set opacity to max
-			var clear = new Mat(bottom.Size(), MatType.CV_8UC4).SetTo(new Scalar(1, 1, 1, 0));
-			var full = new Mat(bottom.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 255));
-			output = output.Mul(clear).Add(full);
+			var bColor = b.RemoveChannel4();
+			bColor.ConvertTo(bColor, MatType.CV_32FC3, 1 / 255f);
 
+			var tmp = invBottomAlpha.Mul(bAlpha).ToMat();
+			tmp = tmp.CvtColor(ColorConversionCodes.GRAY2BGR);
+			tmp = tmp.Mul(bColor);
+
+			var alpha = aAlpha.Add(invBottomAlpha.Mul(bAlpha)).ToMat();
+			var alpha3C = alpha.CvtColor(ColorConversionCodes.GRAY2BGR);
+
+			var result = aAlpha.CvtColor(ColorConversionCodes.GRAY2BGR);
+			result = result.Mul(aColor);
+			result = result.Add(tmp);
+			result = result.Divide(alpha3C);
+			result.ConvertTo(result, MatType.CV_8UC3, 255);
+
+			var output = new Mat(a.Size(), MatType.CV_8UC4);
+			result.ExtractChannel(0).InsertChannel(output, 0);
+			result.ExtractChannel(1).InsertChannel(output, 1);
+			result.ExtractChannel(2).InsertChannel(output, 2);
+			alpha.ConvertTo(alpha, MatType.CV_8UC1, 255);
+			alpha.ExtractChannel(0).InsertChannel(output, 3);
 			return output;
+		}
+
+		/// <summary>
+		/// Remove the 4th channel of a matrix
+		/// </summary>
+		/// <param name="src">Source matrix</param>
+		/// <returns>Matrix with truncated channels</returns>
+		internal static Mat RemoveChannel4(this Mat src)
+		{
+			var type = src.Type() == MatType.CV_8UC4 ? MatType.CV_8UC3 : MatType.CV_32FC3;
+			var output = Mat.Ones(src.Size(), type).ToMat();
+			src.ExtractChannel(0).InsertChannel(output, 0);
+			src.ExtractChannel(1).InsertChannel(output, 1);
+			src.ExtractChannel(2).InsertChannel(output, 2);
+			return output;
+		}
+
+		/// <summary>
+		/// Remove all transparency from a 8UC4 matrix
+		/// </summary>
+		/// <param name="src">Source matrix</param>
+		/// <returns>Matrix of type 8UC4</returns>
+		internal static Mat RemoveTransparency(this Mat src)
+		{
+			var clear = new Mat(src.Size(), MatType.CV_8UC4).SetTo(new Scalar(1, 1, 1, 0));
+			var full = new Mat(src.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 255));
+			return src.Mul(clear).Add(full);
 		}
 
 		/// <summary>
@@ -172,7 +214,7 @@ namespace RatEye
 		/// <param name="src">Source matrix</param>
 		/// <param name="nx">How many times the src is repeated along the horizontal axis</param>
 		/// <param name="ny">How many times the src is repeated along the vertical axis</param>
-		/// <param name="dx">Horizontal left-padding/param>
+		/// <param name="dx">Horizontal left-padding</param>
 		/// <param name="dy">Vertical top-padding</param>
 		/// <returns>The repeated matrix</returns>
 		internal static Mat Repeat(this Mat src, int nx, int ny, int dx, int dy)
@@ -188,6 +230,40 @@ namespace RatEye
 			}
 
 			return dst;
+		}
+
+		/// <summary>
+		/// Add padding to a mat
+		/// </summary>
+		/// <param name="src">Source matrix</param>
+		/// <param name="left">Amount of left padding</param>
+		/// <param name="top">Amount of top padding</param>
+		/// <param name="right">Amount of right padding</param>
+		/// <param name="bottom">Amount of bottom padding</param>
+		/// <returns>New matrix of same type with padding</returns>
+		internal static Mat AddPadding(this Mat src, int left, int top, int right, int bottom)
+		{
+			var resultSize = new Size(src.Width + left + right, src.Height + top + bottom);
+			var result = new Mat(resultSize, src.Type()).SetTo(new Scalar(0, 0, 0, 0));
+			src.CopyTo(result[top, top + src.Rows, left, left + src.Cols]);
+			return result;
+		}
+
+		/// <summary>
+		/// Remove padding to a mat
+		/// </summary>
+		/// <param name="src">Source matrix</param>
+		/// <param name="left">Amount of left padding</param>
+		/// <param name="top">Amount of top padding</param>
+		/// <param name="right">Amount of right padding</param>
+		/// <param name="bottom">Amount of bottom padding</param>
+		/// <returns>New matrix of same type with removed padding</returns>
+		internal static Mat RemovePadding(this Mat src, int left, int top, int right, int bottom)
+		{
+			var resultSize = new Size(src.Width - left - right, src.Height - top - bottom);
+			var result = new Mat(resultSize, src.Type()).SetTo(new Scalar(0, 0, 0, 0));
+			src[top, src.Rows - bottom, left, src.Cols - right].CopyTo(result);
+			return result;
 		}
 
 		#endregion

@@ -118,10 +118,76 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="gridCell" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="cell_full_border" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\cell_full_border.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="searchIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="icon_mod_aux" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_aux.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_barrel" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_barrel.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_bipod" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_bipod.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_charge" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_charge.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_flashlight" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_flashlight.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_gasblock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_gasblock.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_handguard" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_handguard.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_ironsight" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_ironsight.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_launcher" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_launcher.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_lightlaser" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_lightlaser.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_magazine" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_magazine.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_mount" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_mount.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_muzzle" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_muzzle.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_pistol_grip" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_pistol_grip.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_railcovers" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_railcovers.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_receiver" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_receiver.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_sight" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_sight.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_stock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_stock.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_mod_tactical" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_mod\icon_mod_tactical.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="icon_search" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\resources\icon_search.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="mod_gear" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_type\mod_gear.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="mod_generic" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_type\mod_generic.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="mod_vital" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\icon_type\mod_vital.png;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>
