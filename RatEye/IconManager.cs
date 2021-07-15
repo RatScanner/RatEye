@@ -217,10 +217,13 @@ namespace RatEye
 			if (item is WeaponMod)
 			{
 				var weaponModIcon = GetWeaponModIcon(item);
-				var top = result.Height - weaponModIcon.Height - 2;
-				var right = result.Width - weaponModIcon.Width - 2;
-				weaponModIcon = weaponModIcon.AddPadding(2, top, right, 2);
-				result = weaponModIcon.AlphaBlend(result);
+				if (weaponModIcon != null)
+				{
+					var top = result.Height - weaponModIcon.Height - 2;
+					var right = result.Width - weaponModIcon.Width - 2;
+					weaponModIcon = weaponModIcon.AddPadding(2, top, right, 2);
+					result = weaponModIcon.AlphaBlend(result);
+				}
 			}
 
 			// Convert to 8UC3 and return
@@ -231,6 +234,7 @@ namespace RatEye
 		{
 			var bg = GetWeaponModIconBackground(item);
 			var fg = GetWeaponModIconForeground(item);
+			if (fg == null) return bg;
 
 			var paddedBg = bg.AddPadding(bg.Width, bg.Height, bg.Width, bg.Height);
 
@@ -283,6 +287,7 @@ namespace RatEye
 				Receiver => Resources.icon_mod_receiver,
 				Sights => Resources.icon_mod_sight,
 				Stock => Resources.icon_mod_stock,
+				CombTactDevice => Resources.icon_mod_tactical,
 				Foregrip => Resources.icon_mod_tactical,
 				_ => null,
 			};
