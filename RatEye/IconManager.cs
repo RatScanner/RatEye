@@ -342,7 +342,7 @@ namespace RatEye
 		{
 			Logger.LogDebug("Initializing file watcher for dynamic correlation data...");
 			_dynCorrelationDataWatcher = new FileSystemWatcher();
-			_dynCorrelationDataWatcher.Path = Path.GetDirectoryName(_config.PathConfig.DynamicIcons);
+			_dynCorrelationDataWatcher.Path = Path.GetDirectoryName(_config.PathConfig.DynamicCorrelationData);
 			_dynCorrelationDataWatcher.Filter = Path.GetFileName(_config.PathConfig.DynamicCorrelationData);
 			_dynCorrelationDataWatcher.NotifyFilter = NotifyFilters.Size;
 			_dynCorrelationDataWatcher.Changed += OnDynamicCorrelationDataChange;
