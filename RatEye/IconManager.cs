@@ -124,7 +124,7 @@ namespace RatEye
 		{
 			LoadDynamicCorrelationData();
 
-			var temp = LoadIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic);//, 2);
+			var temp = LoadIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic, 2);
 			DynamicIconsLock.EnterWriteLock();
 			try { DynamicIcons = temp; }
 			finally { DynamicIconsLock.ExitWriteLock(); }
