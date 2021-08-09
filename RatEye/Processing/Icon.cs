@@ -154,13 +154,8 @@ namespace RatEye.Processing
 		{
 			SatisfyState(State.Rescaled);
 
-			var source = _scaledIcon.ToMat();
-			if (rotated)
-			{
-				var rotatedIconMat = new Mat();
-				Cv2.Rotate(source, rotatedIconMat, RotateFlags.Rotate90Counterclockwise);
-				source = rotatedIconMat;
-			}
+			using var source = _scaledIcon.ToMat();
+			if (rotated) Cv2.Rotate(source, source, RotateFlags.Rotate90Counterclockwise);
 
 			(string match, float confidence, Vector2 pos) staticResult = default;
 			(string match, float confidence, Vector2 pos) dynamicResult = default;
@@ -214,7 +209,7 @@ namespace RatEye.Processing
 
 			Parallel.ForEach(icons, icon =>
 			{
-				var matches = source.MatchTemplate(icon.Value, TemplateMatchModes.SqDiffNormed);
+				using var matches = source.MatchTemplate(icon.Value, TemplateMatchModes.SqDiffNormed);
 				matches.MinMaxLoc(out var minVal, out _, out var minLoc, out _);
 
 				lock (_sync)

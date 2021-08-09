@@ -149,7 +149,7 @@ namespace RatEye
 				Parallel.ForEach(iconPathArray, iconPath =>
 				{
 					var iconKey = GetIconKey(iconPath, iconType);
-					var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
+					using var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
 
 					var item = GetItem(iconKey);
 					if (item == null) return;
@@ -192,7 +192,7 @@ namespace RatEye
 		{
 			// Generate layers
 			var black = new Scalar(0, 0, 0, 255);
-			var background = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(black);
+			using var background = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(black);
 
 			var gridCell = new Bitmap(new MemoryStream(Resources.cell_full_border)).ToMat();
 			gridCell = gridCell.Repeat(PixelsToSlots(transparentIcon.Width), PixelsToSlots(transparentIcon.Height), -1, -1);
@@ -201,28 +201,28 @@ namespace RatEye
 			var bgColor = optimizeHighlighted ? new Color(255, 255, 255) : item.BackgroundColor.ToColor();
 			var bgAlpha = _config.ProcessingConfig.InventoryConfig.BackgroundAlpha;
 			var bgScalar = new Scalar(bgColor.B, bgColor.G, bgColor.R, bgAlpha);
-			var gridColor = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(bgScalar);
+			using var gridColor = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(bgScalar);
 
-			var border = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 0));
+			using var border = new Mat(transparentIcon.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 0));
 			var borderRect = new Rect(Vector2.Zero, transparentIcon.Size());
 			border.Rectangle(borderRect, _config.ProcessingConfig.InventoryConfig.GridColor);
 
 			// Blend layers
-			var result = gridCell.AlphaBlend(background).RemoveTransparency();
-			result = gridColor.AlphaBlend(result);
-			result = border.AlphaBlend(result);
-			result = transparentIcon.AlphaBlend(result);
+			using var tmp1 = gridCell.AlphaBlend(background).RemoveTransparency();
+			using var tmp2 = gridColor.AlphaBlend(tmp1);
+			using var tmp3 = border.AlphaBlend(tmp2);
+			var result = transparentIcon.AlphaBlend(tmp3);
 
 			// Add weapon mod icon
 			if (item is WeaponMod)
 			{
-				var weaponModIcon = GetWeaponModIcon(item);
+				using var weaponModIcon = GetWeaponModIcon(item);
 				if (weaponModIcon != null)
 				{
 					var top = result.Height - weaponModIcon.Height - 2;
 					var right = result.Width - weaponModIcon.Width - 2;
-					weaponModIcon = weaponModIcon.AddPadding(2, top, right, 2);
-					result = weaponModIcon.AlphaBlend(result);
+					using var weaponModIconPadded = weaponModIcon.AddPadding(2, top, right, 2);
+					result = weaponModIconPadded.AlphaBlend(result);
 				}
 			}
 
@@ -232,11 +232,11 @@ namespace RatEye
 
 		private Mat GetWeaponModIcon(Item item)
 		{
-			var bg = GetWeaponModIconBackground(item);
-			var fg = GetWeaponModIconForeground(item);
+			using var bg = GetWeaponModIconBackground(item);
+			using var fg = GetWeaponModIconForeground(item);
 			if (fg == null) return bg;
 
-			var paddedBg = bg.AddPadding(bg.Width, bg.Height, bg.Width, bg.Height);
+			using var paddedBg = bg.AddPadding(bg.Width, bg.Height, bg.Width, bg.Height);
 
 			var hPadding = (bg.Width * 3) - fg.Width;
 			var vPadding = (bg.Height * 3) - fg.Height;
@@ -245,9 +245,9 @@ namespace RatEye
 			var top = vPadding / 2 + vPadding % 2;
 			var right = hPadding / 2;
 			var bottom = vPadding / 2;
-			var paddedFg = fg.AddPadding(left, top, right, bottom);
+			using var paddedFg = fg.AddPadding(left, top, right, bottom);
 
-			var blended = paddedFg.AlphaBlend(paddedBg);
+			using var blended = paddedFg.AlphaBlend(paddedBg);
 			var croppedBlended = blended.RemovePadding(bg.Width, bg.Height, bg.Width, bg.Height);
 			return croppedBlended;
 		}

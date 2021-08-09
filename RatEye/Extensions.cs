@@ -26,11 +26,11 @@ namespace RatEye
 		{
 			if (scale == 1f) return image;
 
-			var mat = image.ToMat();
+			using var mat = image.ToMat();
 			var rescaledSize = new Size((int)(mat.Width * scale), (int)(mat.Height * scale));
 			var rescaleMode = scale < 1 ? InterpolationFlags.Area : InterpolationFlags.Cubic;
-			var rescaledMat = mat.Resize(rescaledSize, 0, 0, rescaleMode);
-			var rescaledImage = rescaledMat.ToBitmap();
+			Cv2.Resize(mat, mat, rescaledSize, 0, 0, rescaleMode);
+			var rescaledImage = mat.ToBitmap();
 			return rescaledImage;
 		}
 
@@ -42,10 +42,9 @@ namespace RatEye
 		/// <returns>The rotated input image</returns>
 		public static Bitmap Rotate(this Bitmap image)
 		{
-			var mat = image.ToMat();
-			var rotatedMat = new Mat();
-			Cv2.Rotate(mat, rotatedMat, RotateFlags.Rotate90Counterclockwise);
-			return rotatedMat.ToBitmap();
+			using var mat = image.ToMat();
+			Cv2.Rotate(mat, mat, RotateFlags.Rotate90Counterclockwise);
+			return mat.ToBitmap();
 		}
 
 		/// <summary>
@@ -58,12 +57,9 @@ namespace RatEye
 		{
 			var output = new Bitmap(image.Width, image.Height, PixelFormat.Format24bppRgb);
 			var rect = new Rectangle(Point.Empty, image.Size);
-			using (var g = Graphics.FromImage(output))
-			{
-				g.Clear(target);
-				g.DrawImageUnscaledAndClipped(image, rect);
-			}
-
+			using var g = Graphics.FromImage(output);
+			g.Clear(target);
+			g.DrawImageUnscaledAndClipped(image, rect);
 			return output;
 		}
 
@@ -113,8 +109,8 @@ namespace RatEye
 			Color upperBoundColor,
 			int start = 0)
 		{
-			var mat = image.ToMat();
-			var mat3 = new Mat<Vec3b>(mat);
+			using var mat = image.ToMat();
+			using var mat3 = new Mat<Vec3b>(mat);
 			var indexer = mat3.GetIndexer();
 
 			for (var x = start; x < mat.Width; x++)
@@ -144,32 +140,32 @@ namespace RatEye
 		internal static Mat AlphaBlend(this Mat a, Mat b)
 		{
 			// Extract a alpha
-			var aAlpha = a.ExtractChannel(3);
+			using var aAlpha = a.ExtractChannel(3);
 			aAlpha.ConvertTo(aAlpha, MatType.CV_32FC1, 1 / 255f);
 
 			// Extract b alpha
-			var bAlpha = b.ExtractChannel(3);
+			using var bAlpha = b.ExtractChannel(3);
 			bAlpha.ConvertTo(bAlpha, MatType.CV_32FC1, 1 / 255f);
 
-			var invBottomAlpha = Mat.Ones(aAlpha.Size(), MatType.CV_32FC1).Subtract(aAlpha).ToMat();
+			using var invBottomAlpha = Mat.Ones(aAlpha.Size(), MatType.CV_32FC1).Subtract(aAlpha).ToMat();
 
-			var aColor = a.RemoveChannel4();
+			using var aColor = a.RemoveChannel4();
 			aColor.ConvertTo(aColor, MatType.CV_32FC3, 1 / 255f);
 
-			var bColor = b.RemoveChannel4();
+			using var bColor = b.RemoveChannel4();
 			bColor.ConvertTo(bColor, MatType.CV_32FC3, 1 / 255f);
 
-			var tmp = invBottomAlpha.Mul(bAlpha).ToMat();
-			tmp = tmp.CvtColor(ColorConversionCodes.GRAY2BGR);
-			tmp = tmp.Mul(bColor);
+			using var tmp = invBottomAlpha.Mul(bAlpha).ToMat();
+			Cv2.CvtColor(tmp, tmp, ColorConversionCodes.GRAY2BGR);
+			Cv2.Multiply(tmp, bColor, tmp);
 
-			var alpha = aAlpha.Add(invBottomAlpha.Mul(bAlpha)).ToMat();
-			var alpha3C = alpha.CvtColor(ColorConversionCodes.GRAY2BGR);
+			using var alpha = aAlpha.Add(invBottomAlpha.Mul(bAlpha)).ToMat();
+			using var alpha3C = alpha.CvtColor(ColorConversionCodes.GRAY2BGR);
 
-			var result = aAlpha.CvtColor(ColorConversionCodes.GRAY2BGR);
-			result = result.Mul(aColor);
-			result = result.Add(tmp);
-			result = result.Divide(alpha3C);
+			using var result = aAlpha.CvtColor(ColorConversionCodes.GRAY2BGR);
+			Cv2.Multiply(result, aColor, result);
+			Cv2.Add(result, tmp, result);
+			Cv2.Divide(result, alpha3C, result);
 			result.ConvertTo(result, MatType.CV_8UC3, 255);
 
 			var output = new Mat(a.Size(), MatType.CV_8UC4);
@@ -203,9 +199,12 @@ namespace RatEye
 		/// <returns>Matrix of type 8UC4</returns>
 		internal static Mat RemoveTransparency(this Mat src)
 		{
-			var clear = new Mat(src.Size(), MatType.CV_8UC4).SetTo(new Scalar(1, 1, 1, 0));
-			var full = new Mat(src.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 255));
-			return src.Mul(clear).Add(full);
+			var output = Mat.Ones(src.Size(), MatType.CV_8UC4).ToMat();
+			using var clear = new Mat(src.Size(), MatType.CV_8UC4).SetTo(new Scalar(1, 1, 1, 0));
+			using var full = new Mat(src.Size(), MatType.CV_8UC4).SetTo(new Scalar(0, 0, 0, 255));
+			Cv2.Multiply(src, clear, output);
+			Cv2.Add(output, full, output);
+			return output;
 		}
 
 		/// <summary>

@@ -76,16 +76,16 @@ namespace RatEye.Processing
 			var maxGridColor = _config.ProcessingConfig.InventoryConfig.MaxGridColor;
 			var minGridScalar = Scalar.FromRgb(minGridColor.R, minGridColor.G, minGridColor.B);
 			var maxGridScalar = Scalar.FromRgb(maxGridColor.R, maxGridColor.G, maxGridColor.B);
-			var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
+			using var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
 
 			var scaledSlotSize = ProcessingConfig.ScaledSlotSize;
 
-			var lineStructure = Mat.Ones(MatType.CV_8U, new[] { (int)(scaledSlotSize), 1 });
+			using var lineStructure = Mat.Ones(MatType.CV_8U, new[] { (int)(scaledSlotSize), 1 });
 
 			var verticalLines = colorFilter.Erode(lineStructure);
-			verticalLines = verticalLines.Dilate(lineStructure);
-			var horizontalLines = colorFilter.Erode(lineStructure.T());
-			horizontalLines = horizontalLines.Dilate(lineStructure.T());
+			Cv2.Dilate(verticalLines, verticalLines, lineStructure);
+			using var horizontalLines = colorFilter.Erode(lineStructure.T());
+			Cv2.Dilate(horizontalLines, horizontalLines, lineStructure.T());
 
 			var filteredLines = new Mat();
 			Cv2.BitwiseOr(horizontalLines, verticalLines, filteredLines);
@@ -238,6 +238,13 @@ namespace RatEye.Processing
 			}
 
 			return null;
+		}
+
+		~Inventory()
+		{
+			_image?.Dispose();
+			_grid?.Dispose();
+			_vertGrid?.Dispose();
 		}
 	}
 }

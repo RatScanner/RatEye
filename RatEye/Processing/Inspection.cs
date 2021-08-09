@@ -200,20 +200,19 @@ namespace RatEye.Processing
 		/// <returns>Confidence and position of the best match</returns>
 		private (float confidence, Vector2 position) GetMarkerPosition(Bitmap marker)
 		{
-			using (var refMat = _image.ToMat()) // ref = reference
-			using (var tplMat = marker.ToMat()) // tpl = template
-			using (var res = new Mat(refMat.Rows - tplMat.Rows + 1, refMat.Cols - tplMat.Cols + 1, MatType.CV_32FC1))
-			{
-				// Gray scale both reference and template image
-				var gref = refMat.CvtColor(ColorConversionCodes.RGB2GRAY);
-				var gtpl = tplMat.CvtColor(ColorConversionCodes.RGB2GRAY);
+			using var refMat = _image.ToMat();
+			using var tplMat = marker.ToMat(); // tpl = template
+			using var res = new Mat(refMat.Rows - tplMat.Rows + 1, refMat.Cols - tplMat.Cols + 1, MatType.CV_32FC1);
 
-				Cv2.MatchTemplate(gref, gtpl, res, TemplateMatchModes.CCoeffNormed);
-				//Cv2.Threshold(res, res, 0.8, 1.0, ThresholdTypes.Tozero);
-				Cv2.MinMaxLoc(res, out _, out var maxVal, out _, out var maxLoc);
+			// Gray scale both reference and template image
+			using var gref = refMat.CvtColor(ColorConversionCodes.RGB2GRAY);
+			using var gtpl = tplMat.CvtColor(ColorConversionCodes.RGB2GRAY);
 
-				return ((float)maxVal, new Vector2(maxLoc));
-			}
+			Cv2.MatchTemplate(gref, gtpl, res, TemplateMatchModes.CCoeffNormed);
+			//Cv2.Threshold(res, res, 0.8, 1.0, ThresholdTypes.Tozero);
+			Cv2.MinMaxLoc(res, out _, out var maxVal, out _, out var maxLoc);
+
+			return ((float)maxVal, new Vector2(maxLoc));
 		}
 
 		private void ScanTitle()
