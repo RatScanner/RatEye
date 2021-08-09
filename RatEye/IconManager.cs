@@ -114,9 +114,16 @@ namespace RatEye
 		{
 			LoadStaticCorrelationData();
 
-			var temp = LoadIcons(_config.PathConfig.StaticIcons, IconType.Static);
+			var newIcons = LoadNewIcons(_config.PathConfig.StaticIcons, IconType.Static);
 			StaticIconsLock.EnterWriteLock();
-			try { StaticIcons = temp; }
+			try
+			{
+				foreach (var icons in newIcons)
+				{
+					if (!StaticIcons.ContainsKey(icons.Key)) StaticIcons.Add(icons.Key, new Dictionary<string, Mat>());
+					foreach (var icon in icons.Value) StaticIcons[icons.Key].Add(icon.Key, icon.Value);
+				}
+			}
 			finally { StaticIconsLock.ExitWriteLock(); }
 		}
 
@@ -124,13 +131,20 @@ namespace RatEye
 		{
 			LoadDynamicCorrelationData();
 
-			var temp = LoadIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic, 2);
+			var newIcons = LoadNewIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic, 2);
 			DynamicIconsLock.EnterWriteLock();
-			try { DynamicIcons = temp; }
+			try
+			{
+				foreach (var icons in newIcons)
+				{
+					if (!StaticIcons.ContainsKey(icons.Key)) StaticIcons.Add(icons.Key, new Dictionary<string, Mat>());
+					foreach (var icon in icons.Value) StaticIcons[icons.Key].Add(icon.Key, icon.Value);
+				}
+			}
 			finally { DynamicIconsLock.ExitWriteLock(); }
 		}
 
-		private Dictionary<Vector2, Dictionary<string, Mat>> LoadIcons(
+		private Dictionary<Vector2, Dictionary<string, Mat>> LoadNewIcons(
 			string folderPath,
 			IconType iconType,
 			int retryCount = 0)
@@ -145,29 +159,63 @@ namespace RatEye
 			try
 			{
 				var iconPathArray = Directory.GetFiles(folderPath, "*.png");
-
-				Parallel.ForEach(iconPathArray, iconPath =>
+				if (iconType == IconType.Static)
 				{
-					var iconKey = GetIconKey(iconPath, iconType);
-					using var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
-
-					var item = GetItem(iconKey);
-					if (item == null) return;
-					var icon = GetIconWithBackground(mat, item);
-
-					// Do not add the icon to the list, if its size cannot be converted to slots
-					if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) return;
-
-					var size = new Vector2(PixelsToSlots(icon.Width), PixelsToSlots(icon.Height));
-					lock (loadedIcons)
+					_staticCorrelationDataLock.EnterReadLock();
+					StaticIconsLock.EnterReadLock();
+				}
+				else if (iconType == IconType.Dynamic)
+				{
+					_dynamicCorrelationDataLock.EnterReadLock();
+					DynamicIconsLock.EnterReadLock();
+				}
+				try
+				{
+					Parallel.ForEach(iconPathArray, iconPath =>
 					{
-						if (!loadedIcons.ContainsKey(size)) { loadedIcons.Add(size, new Dictionary<string, Mat>()); }
+						var iconKey = GetIconKey(iconPath, iconType);
 
-						// Add icon to icon and path dictionary
-						loadedIcons[size][iconKey] = icon;
-						_iconPaths[iconKey] = iconPath;
+						var item = GetItemUnsafe(iconKey);
+						if (item == null) return;
+
+						// Skip existing icons
+						var itemSize = new Vector2(item.Width, item.Height);
+						if (iconType == IconType.Static && StaticIcons.Any(x => x.Value.ContainsKey(iconKey))) return;
+						if (iconType == IconType.Dynamic && DynamicIcons.Any(x => x.Value.ContainsKey(iconKey))) return;
+
+						using var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
+						var icon = GetIconWithBackground(mat, item);
+
+						// Do not add the icon to the list, if its size cannot be converted to slots
+						if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) return;
+
+						var size = new Vector2(PixelsToSlots(icon.Width), PixelsToSlots(icon.Height));
+						lock (loadedIcons)
+						{
+							if (!loadedIcons.ContainsKey(size))
+							{
+								loadedIcons.Add(size, new Dictionary<string, Mat>());
+							}
+
+							// Add icon to icon and path dictionary
+							loadedIcons[size][iconKey] = icon;
+							_iconPaths[iconKey] = iconPath;
+						}
+					});
+				}
+				finally
+				{
+					if (iconType == IconType.Static)
+					{
+						_staticCorrelationDataLock.ExitReadLock();
+						StaticIconsLock.ExitReadLock();
 					}
-				});
+					else if (iconType == IconType.Dynamic)
+					{
+						_dynamicCorrelationDataLock.ExitReadLock();
+						DynamicIconsLock.ExitReadLock();
+					}
+				}
 			}
 			catch (Exception e)
 			{
@@ -175,7 +223,7 @@ namespace RatEye
 				if (retryCount > 0)
 				{
 					Thread.Sleep(100);
-					return LoadIcons(folderPath, iconType, retryCount - 1);
+					return LoadNewIcons(folderPath, iconType, retryCount - 1);
 				}
 			}
 
@@ -402,6 +450,28 @@ namespace RatEye
 				_dynamicCorrelationDataLock.EnterReadLock();
 				try { return _dynamicCorrelationData[iconKey].Item1; }
 				finally { _dynamicCorrelationDataLock.ExitReadLock(); }
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Get the item, referenced by its icon key while assuming that 
+		/// <see cref="_staticCorrelationDataLock"/> or <see cref="_dynamicCorrelationDataLock"/>
+		/// got correctly acquired before.
+		/// </summary>
+		/// <param name="iconKey">The icon key</param>
+		/// <returns>The matching item</returns>
+		private Item GetItemUnsafe(string iconKey)
+		{
+			if (iconKey.StartsWith(_config.PathConfig.StaticIcons))
+			{
+				return _staticCorrelationData[iconKey];
+			}
+
+			if (iconKey.StartsWith(_config.PathConfig.DynamicIcons))
+			{
+				return _dynamicCorrelationData[iconKey].Item1;
 			}
 
 			return null;
