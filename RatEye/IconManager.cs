@@ -137,8 +137,8 @@ namespace RatEye
 			{
 				foreach (var icons in newIcons)
 				{
-					if (!StaticIcons.ContainsKey(icons.Key)) StaticIcons.Add(icons.Key, new Dictionary<string, Mat>());
-					foreach (var icon in icons.Value) StaticIcons[icons.Key].Add(icon.Key, icon.Value);
+					if (!DynamicIcons.ContainsKey(icons.Key)) DynamicIcons.Add(icons.Key, new Dictionary<string, Mat>());
+					foreach (var icon in icons.Value) DynamicIcons[icons.Key].Add(icon.Key, icon.Value);
 				}
 			}
 			finally { DynamicIconsLock.ExitWriteLock(); }
