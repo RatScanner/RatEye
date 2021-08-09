@@ -440,14 +440,22 @@ namespace RatEye
 			if (iconKey.StartsWith(_config.PathConfig.StaticIcons))
 			{
 				_staticCorrelationDataLock.EnterReadLock();
-				try { return _staticCorrelationData[iconKey]; }
+				try
+				{
+					_staticCorrelationData.TryGetValue(iconKey, out var item);
+					return item;
+				}
 				finally { _staticCorrelationDataLock.ExitReadLock(); }
 			}
 
 			if (iconKey.StartsWith(_config.PathConfig.DynamicIcons))
 			{
 				_dynamicCorrelationDataLock.EnterReadLock();
-				try { return _dynamicCorrelationData[iconKey].Item1; }
+				try
+				{
+					_dynamicCorrelationData.TryGetValue(iconKey, out var item);
+					return item.Item1;
+				}
 				finally { _dynamicCorrelationDataLock.ExitReadLock(); }
 			}
 
@@ -465,12 +473,14 @@ namespace RatEye
 		{
 			if (iconKey.StartsWith(_config.PathConfig.StaticIcons))
 			{
-				return _staticCorrelationData[iconKey];
+				_staticCorrelationData.TryGetValue(iconKey, out var item);
+				return item;
 			}
 
 			if (iconKey.StartsWith(_config.PathConfig.DynamicIcons))
 			{
-				return _dynamicCorrelationData[iconKey].Item1;
+				_dynamicCorrelationData.TryGetValue(iconKey, out var item);
+				return item.Item1;
 			}
 
 			return null;
