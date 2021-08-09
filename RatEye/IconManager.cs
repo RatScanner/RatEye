@@ -179,7 +179,6 @@ namespace RatEye
 						if (item == null) return;
 
 						// Skip existing icons
-						var itemSize = new Vector2(item.Width, item.Height);
 						if (iconType == IconType.Static && StaticIcons.Any(x => x.Value.ContainsKey(iconKey))) return;
 						if (iconType == IconType.Dynamic && DynamicIcons.Any(x => x.Value.ContainsKey(iconKey))) return;
 
