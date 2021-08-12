@@ -8,13 +8,16 @@ using Inventory = RatEye.Processing.Inventory;
 namespace RatEyeTest
 {
 	[Collection("IconTest")]
-	public class IconTest : TestEnvironment
+	public class LegacyDynamicIconTest : TestEnvironment
 	{
 		public override void Setup()
 		{
-			Config.GlobalConfig.PathConfig.DynamicIcons = "Data/DynamicIconsH";
-			Config.GlobalConfig.PathConfig.DynamicCorrelationData = "Data/DynamicIconsH/index.json";
+			Config.GlobalConfig.PathConfig.DynamicIcons = "Data/DynamicIcons";
+			Config.GlobalConfig.PathConfig.DynamicCorrelationData = "Data/DynamicIcons/index.json";
 			Config.GlobalConfig.ProcessingConfig.IconConfig.UseDynamicIcons = true;
+
+			Config.GlobalConfig.ProcessingConfig.IconConfig.UseLegacyCacheIndex = true;
+
 			Config.GlobalConfig.Apply();
 			base.Setup();
 		}
@@ -22,11 +25,12 @@ namespace RatEyeTest
 		[Fact]
 		public void ItemFHDDynamic()
 		{
-			var image = new Bitmap("TestData/FHD_InventoryH.png");
+			var image = new Bitmap("TestData/FHD_Inventory2.png");
 			var inventory = new Inventory(image);
-			var icon = inventory.LocateIcon(new Vector2(1800, 600));
-			Assert.Equal("5ea034eb5aad6446a939737b", icon.Item.Id);
-			var expectedPath = Path.GetFullPath("Data/DynamicIconsH/51.png");
+			var icon = inventory.LocateIcon(new Vector2(960, 525));
+			Assert.Equal("OKP-7 reflex sight", icon.Item.Name);
+			Assert.Equal("57486e672459770abd687134", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/DynamicIcons/24.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.False(icon.Rotated);
 		}
@@ -34,7 +38,7 @@ namespace RatEyeTest
 		[Fact]
 		public void ItemFHDDynamicHighlighted()
 		{
-			var image = new Bitmap("TestData/FHD_InventoryHighlighted2H.png");
+			var image = new Bitmap("TestData/FHD_InventoryHighlighted2.png");
 			var inventory = new Inventory(image,
 				new Config()
 				{
@@ -48,8 +52,9 @@ namespace RatEyeTest
 					}
 				}.Apply());
 			var icon = inventory.LocateIcon();
-			Assert.Equal("5c0505e00db834001b735073", icon.Item.Id);
-			var expectedPath = Path.GetFullPath("Data/DynamicIconsH/44.png");
+			Assert.Equal("MP-133 12ga shotgun", icon.Item.Name);
+			Assert.Equal("54491c4f4bdc2db1078b4568", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/DynamicIcons/121.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.True(icon.Rotated);
 		}

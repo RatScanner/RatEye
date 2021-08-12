@@ -1,4 +1,6 @@
-﻿namespace RatEye
+﻿using System;
+
+namespace RatEye
 {
 	public partial class Config
 	{
@@ -26,6 +28,12 @@
 				public bool WatchDynamicIcons;
 
 				/// <summary>
+				/// If <see langword="true"/> the index file will be treated as being
+				/// created by a version prior to 0.12.11.2.13615
+				/// </summary>
+				public bool UseLegacyCacheIndex;
+
+				/// <summary>
 				/// Scan for 90° rotated icons
 				/// </summary>
 				public bool ScanRotatedIcons;
@@ -51,6 +59,7 @@
 					UseStaticIcons = globalConfig.UseStaticIcons;
 					UseDynamicIcons = globalConfig.UseDynamicIcons;
 					WatchDynamicIcons = globalConfig.WatchDynamicIcons;
+					UseLegacyCacheIndex = globalConfig.UseLegacyCacheIndex;
 					ScanRotatedIcons = globalConfig.ScanRotatedIcons;
 				}
 
@@ -59,6 +68,7 @@
 					UseStaticIcons = false;
 					UseDynamicIcons = false;
 					WatchDynamicIcons = true;
+					UseLegacyCacheIndex = false;
 					ScanRotatedIcons = true;
 				}
 

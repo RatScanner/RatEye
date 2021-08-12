@@ -370,7 +370,12 @@ namespace RatEye
 		private void LoadDynamicCorrelationData()
 		{
 			var path = _config.PathConfig.DynamicCorrelationData;
-			var parsedIndex = Config.RatStashDB.ParseItemCacheIndex(path);
+
+			Dictionary<int, (Item item, ItemExtraInfo itemExtraInfo)> parsedIndex;
+			var legacyIndex = _config.ProcessingConfig.IconConfig.UseLegacyCacheIndex;
+			if (legacyIndex) parsedIndex = Config.RatStashDB.ParseItemCacheIndex(path);
+			else parsedIndex = Config.RatStashDB.ParseItemCacheHashIndex(path);
+
 			var correlationData = parsedIndex.ToDictionary(
 				x => GetIconKey(x.Key + ".png", IconType.Dynamic), x => x.Value);
 
