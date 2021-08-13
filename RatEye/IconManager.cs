@@ -409,7 +409,6 @@ namespace RatEye
 		{
 			Logger.LogDebug("Dynamic correlation data changed");
 
-			LoadDynamicCorrelationData();
 			LoadDynamicIcons();
 		}
 
