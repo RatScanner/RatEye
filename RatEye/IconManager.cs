@@ -405,11 +405,12 @@ namespace RatEye
 		/// Event which gets called when the dynamic correlation data file
 		/// get changed. Dynamic icons and correlation data get updated.
 		/// </summary>
-		private void OnDynamicCorrelationDataChange(object source, FileSystemEventArgs e)
+		private void OnDynamicCorrelationDataChange(object source, FileSystemEventArgs _)
 		{
 			Logger.LogDebug("Dynamic correlation data changed");
 
-			LoadDynamicIcons();
+			try { LoadDynamicIcons(); }
+			catch (Exception e) { Logger.LogDebug("Error while loading new dynamic icons", e); }
 		}
 
 		/// <summary>
