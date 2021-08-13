@@ -59,7 +59,8 @@ namespace RatEyeTest
 					Scale = scale,
 					InspectionConfig = new Config.Processing.Inspection()
 					{
-						MarkerThreshold = 0.99f
+						MarkerThreshold = 0.99f,
+						EnableContainers = true,
 					}
 				}
 			}.Apply();
