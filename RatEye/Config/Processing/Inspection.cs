@@ -117,8 +117,8 @@ namespace RatEye
 				private void SetDefaults()
 				{
 					Marker = new Bitmap(new MemoryStream(Resources.icon_search));
-					MarkerThreshold = 0.95f;
 					EnableContainers = true;
+					MarkerThreshold = 0.93f;
 					MarkerItemScale = 17f / 19f;
 					MarkerContainerScale = 1f;
 					MarkerBackgroundColor = Color.FromArgb(25, 27, 27);
