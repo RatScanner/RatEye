@@ -95,7 +95,7 @@ namespace RatEye
 			/// <param name="width"></param>
 			/// <param name="height"></param>
 			/// <returns>The scale calculated from the screen resolution</returns>
-			public float Resolution2Scale(int width, int height)
+			public static float Resolution2Scale(int width, int height)
 			{
 				var screenScaleFactor1 = width / 1920f;
 				var screenScaleFactor2 = height / 1080f;
