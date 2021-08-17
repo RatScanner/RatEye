@@ -87,10 +87,48 @@ namespace RatEye.Processing
 			using var horizontalLines = colorFilter.Erode(lineStructure.T());
 			Cv2.Dilate(horizontalLines, horizontalLines, lineStructure.T());
 
+			using var structure = Mat.Ones(MatType.CV_8U, new[] { 5, 1 });
+			Cv2.Erode(verticalLines, verticalLines, structure);
+
+			SmoothJaggedLines(verticalLines, false);
+			SmoothJaggedLines(horizontalLines, true);
+
 			var filteredLines = new Mat();
 			Cv2.BitwiseOr(horizontalLines, verticalLines, filteredLines);
-			_vertGrid = verticalLines;
+			CutPeeks(filteredLines);
+
 			_grid = filteredLines;
+			_vertGrid = verticalLines;
+		}
+
+		private void SmoothJaggedLines(Mat mat, bool horizontal)
+		{
+			using var extendedLines = new Mat();
+			using var thickenedLines = new Mat();
+
+			var size = ProcessingConfig.ScaledSlotSize * 2;
+			var extendStructureSize = horizontal ? new[] { 1, (int)size } : new[] { (int)size, 1 };
+			using var extendStructure = Mat.Ones(MatType.CV_8U, extendStructureSize).ToMat();
+
+			using var thickenStructure = Mat.Ones(MatType.CV_8U, new[] { 3, 3 }).ToMat();
+
+			Cv2.Dilate(mat, extendedLines, extendStructure, null, 10);
+			Cv2.Dilate(mat, thickenedLines, thickenStructure);
+
+			Cv2.BitwiseAnd(extendedLines, thickenedLines, mat);
+		}
+
+		private void CutPeeks(Mat mat)
+		{
+			using var horizontalStructure = Mat.Ones(MatType.CV_8U, new[] { 1, 3 }).ToMat();
+			using var verticalStructure = Mat.Ones(MatType.CV_8U, new[] { 3, 1 }).ToMat();
+
+			using var horizontalTmp = new Mat();
+			using var verticalTmp = new Mat();
+
+			Cv2.Erode(mat, horizontalTmp, horizontalStructure);
+			Cv2.Erode(mat, verticalTmp, verticalStructure);
+			Cv2.BitwiseOr(horizontalTmp, verticalTmp, mat);
 		}
 
 		private void ParseInventoryGrid()
@@ -226,6 +264,25 @@ namespace RatEye.Processing
 		public Icon LocateIcon(Vector2 position = null)
 		{
 			SatisfyState(State.GridParsed);
+
+#if DEBUG
+			Logger.LogDebugMat(_grid, "grid");
+
+			using var debugGrid = new Mat();
+			Cv2.CvtColor(_grid.Clone(), debugGrid, ColorConversionCodes.GRAY2BGR);
+			for (var i = 0; i < _icons.Count; i++)
+			{
+				var icon = _icons[i];
+				var color = Scalar.RandomColor();
+				for (var j = 0; j <= 20; j++)
+				{
+					var inc = Vector2.One * j;
+					var rect = new Rect(icon.Position + inc, icon.Size - inc * 2);
+					debugGrid.Rectangle(rect, color.Mul(new Scalar(j / 20f, j / 20f, j / 20f)));
+				}
+			}
+			Logger.LogDebugMat(debugGrid, "icons");
+#endif
 
 			if (position == null) position = new Vector2(_grid.Size()) / 2;
 
