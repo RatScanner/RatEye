@@ -14,6 +14,7 @@ namespace RatEyeTest
 			Config.GlobalConfig.PathConfig.StaticIcons = "Data/StaticIcons";
 			Config.GlobalConfig.PathConfig.StaticCorrelationData = "Data/StaticIcons/correlation.json";
 			Config.GlobalConfig.ProcessingConfig.IconConfig.UseStaticIcons = true;
+			Config.GlobalConfig.ProcessingConfig.IconConfig.UseDynamicIcons = false;
 			Config.GlobalConfig.Apply();
 			base.Setup();
 		}
@@ -41,6 +42,25 @@ namespace RatEyeTest
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_water_bottle_loot.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.True(icon.Rotated);
+		}
+
+		[Fact]
+		public void ItemQHD()
+		{
+			var image = new Bitmap("TestData/QHD_Container.png");
+			var inventory = new Inventory(image, new Config()
+			{
+				ProcessingConfig = new Config.Processing()
+				{
+					Scale = Config.Processing.Resolution2Scale(2560, 1450),
+				},
+			});
+			var icon = inventory.LocateIcon(new Vector2(640, 840));
+			Assert.Equal("Wrench", icon.Item.Name);
+			Assert.Equal("590c311186f77424d1667482", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_tools_wrench.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
+			Assert.False(icon.Rotated);
 		}
 	}
 }

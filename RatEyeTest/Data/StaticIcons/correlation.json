@@ -3,8 +3,96 @@
         "icon": "item_equipment_headset_comtacii.png",
         "uid": "5645bcc04bdc2d363b8b4572"
     },
-	{
-		"icon": "item_water_bottle_loot.png",
-		"uid": "5448fee04bdc2dbc018b4567"
-	}
+    {
+        "icon": "item_water_bottle_loot.png",
+        "uid": "5448fee04bdc2dbc018b4567"
+    },
+    {
+        "icon": "item_barter_building_hose.png",
+        "uid": "59e35cbb86f7741778269d83"
+    },
+    {
+        "icon": "item_barter_building_nails.png",
+        "uid": "590c31c586f774245e3141b2"
+    },
+    {
+        "icon": "item_screw_bolts.png",
+        "uid": "57347c5b245977448d35f6e1"
+    },
+    {
+        "icon": "item_screw_nuts.png",
+        "uid": "57347c77245977448d35f6e2"
+    },
+    {
+        "icon": "item_barter_building_screw.png",
+        "uid": "59e35ef086f7741777737012"
+    },
+    {
+        "icon": "item_barter_electr_cablemilitary.png",
+        "uid": "5d0375ff86f774186372f685"
+    },
+    {
+        "icon": "item_barter_energy_greenbat.png",
+        "uid": "5e2aedd986f7746d404f3aa4"
+    },
+    {
+        "icon": "item_barter_flammable_survlighter.png",
+        "uid": "5e2af37686f774755a234b65"
+    },
+    {
+        "icon": "item_barter_medical_h2o2.png",
+        "uid": "59e361e886f774176c10a2a5"
+    },
+    {
+        "icon": "item_barter_medical_nacl.png",
+        "uid": "59e3606886f77417674759a5"
+    },
+    {
+        "icon": "item_barter_medical_pile.png",
+        "uid": "5d1b3a5d86f774252167ba22"
+    },
+    {
+        "icon": "item_barter_tools_nippers.png",
+        "uid": "5d40425986f7743185265461"
+    },
+    {
+        "icon": "item_barter_tools_pliers_elite.png",
+        "uid": "5af04b6486f774195a3ebb49"
+    },
+    {
+        "icon": "item_barter_tools_pliers_round.png",
+        "uid": "5d1b31ce86f7742523398394"
+    },
+    {
+        "icon": "item_barter_tools_screwdriver_flat.png",
+        "uid": "5d63d33b86f7746ea9275524"
+    },
+    {
+        "icon": "item_barter_tools_screwdriver_flat_long.png",
+        "uid": "5d4042a986f7743185265463"
+    },
+    {
+        "icon": "item_cigarettes_malboro.png",
+        "uid": "573476d324597737da2adc13"
+    },
+    {
+        "icon": "item_cigarettes_soyuz_apollo.png",
+        "uid": "573475fb24597737fb1379e1"
+    },
+    {
+        "icon": "item_cigarettes_strike.png",
+        "uid": "5734770f24597738025ee254"
+    },
+    {
+        "icon": "item_cigarettes_wilston.png",
+        "uid": "573476f124597737e04bf328"
+    },
+    {
+        "icon": "item_tools_toolset.png",
+        "uid": "590c2e1186f77425357b6124"
+    },
+    {
+        "icon": "item_tools_wrench.png",
+        "uid": "590c311186f77424d1667482"
+    }
 ]
