@@ -1,4 +1,6 @@
-﻿namespace RatEyeTest
+﻿using Xunit;
+
+namespace RatEyeTest
 {
 	public class TestEnvironment
 	{
@@ -9,7 +11,7 @@
 			Setup();
 		}
 
-		public virtual void Setup() { }
+		protected virtual void Setup() { }
 
 		/// <summary>
 		/// Combine two paths

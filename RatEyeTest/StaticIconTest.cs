@@ -6,10 +6,10 @@ using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEyeTest
 {
-	[Collection("IconTest")]
+	[Collection("SerialTest")]
 	public class StaticIconTest : TestEnvironment
 	{
-		public override void Setup()
+		protected override void Setup()
 		{
 			Config.GlobalConfig.PathConfig.StaticIcons = "Data/StaticIcons";
 			Config.GlobalConfig.PathConfig.StaticCorrelationData = "Data/StaticIcons/correlation.json";

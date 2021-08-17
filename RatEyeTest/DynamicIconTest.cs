@@ -7,10 +7,10 @@ using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEyeTest
 {
-	[Collection("IconTest")]
-	public class IconTest : TestEnvironment
+	[Collection("SerialTest")]
+	public class DynamicIconTest : TestEnvironment
 	{
-		public override void Setup()
+		protected override void Setup()
 		{
 			Config.GlobalConfig.PathConfig.DynamicIcons = "Data/DynamicIconsH";
 			Config.GlobalConfig.PathConfig.DynamicCorrelationData = "Data/DynamicIconsH/index.json";

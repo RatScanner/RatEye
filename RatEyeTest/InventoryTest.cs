@@ -6,6 +6,7 @@ using Xunit;
 
 namespace RatEyeTest
 {
+	[Collection("SerialTest")]
 	public class InventoryTest : TestEnvironment
 	{
 		[Fact]
