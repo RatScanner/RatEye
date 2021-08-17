@@ -23,7 +23,7 @@ namespace RatEyeTest
 		}
 
 		[Fact]
-		public void ItemFHDDynamic()
+		public void ItemFHD()
 		{
 			var image = new Bitmap("TestData/FHD_Inventory2.png");
 			var inventory = new Inventory(image);
@@ -36,7 +36,7 @@ namespace RatEyeTest
 		}
 
 		[Fact]
-		public void ItemFHDDynamicHighlighted()
+		public void ItemFHDHighlighted()
 		{
 			var image = new Bitmap("TestData/FHD_InventoryHighlighted2.png");
 			var inventory = new Inventory(image,
