@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using System.IO;
 
 namespace RatEyeTest
 {
@@ -11,7 +11,11 @@ namespace RatEyeTest
 			Setup();
 		}
 
-		protected virtual void Setup() { }
+		protected virtual void Setup()
+		{
+			if (Directory.Exists("Debug")) Directory.Delete("Debug", true);
+			Directory.CreateDirectory("Debug");
+		}
 
 		/// <summary>
 		/// Combine two paths
