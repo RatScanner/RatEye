@@ -138,10 +138,14 @@ namespace RatEye.Processing
 			var gridIndexer = _grid.GetGenericIndexer<byte>();
 			var vertGrindIndexer = _vertGrid.GetGenericIndexer<byte>();
 
-			var rowStep = (int)(_config.ProcessingConfig.ScaledSlotSize);
-			for (var y = 0; y < _vertGrid.Rows; y += rowStep)
+			var scaledSlotSize = (int)(_config.ProcessingConfig.ScaledSlotSize);
+
+			var maxRows = _vertGrid.Rows;
+			var maxCols = _vertGrid.Cols - scaledSlotSize / 2;
+
+			for (var y = scaledSlotSize / 2; y < maxRows; y += scaledSlotSize)
 			{
-				for (var x = 0; x < _vertGrid.Cols; x++)
+				for (var x = 0; x < maxCols; x++)
 				{
 					if (!vertGrindIndexer[y, x].Equals(0xFF)) continue;
 
