@@ -52,7 +52,7 @@ namespace RatEyeTest
 			{
 				ProcessingConfig = new Config.Processing()
 				{
-					Scale = Config.Processing.Resolution2Scale(2560, 1450),
+					Scale = Config.Processing.Resolution2Scale(2560, 1440),
 				},
 			});
 			var icon = inventory.LocateIcon(new Vector2(640, 840));
