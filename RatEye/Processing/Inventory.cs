@@ -72,32 +72,27 @@ namespace RatEye.Processing
 
 		private void DetectInventoryGrid()
 		{
+			var scaledSlotSize = ProcessingConfig.ScaledSlotSize;
+
 			var minGridColor = _config.ProcessingConfig.InventoryConfig.MinGridColor;
 			var maxGridColor = _config.ProcessingConfig.InventoryConfig.MaxGridColor;
 			var minGridScalar = Scalar.FromRgb(minGridColor.R, minGridColor.G, minGridColor.B);
 			var maxGridScalar = Scalar.FromRgb(maxGridColor.R, maxGridColor.G, maxGridColor.B);
 			using var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
 
-			var scaledSlotSize = ProcessingConfig.ScaledSlotSize;
-
-			using var lineStructure = Mat.Ones(MatType.CV_8U, new[] { (int)(scaledSlotSize), 1 });
-
+			// Extract vertical and horizontal lines
+			using var lineStructure = Mat.Ones(MatType.CV_8U, new[] { (int)scaledSlotSize, 1 });
 			var verticalLines = colorFilter.Erode(lineStructure);
 			Cv2.Dilate(verticalLines, verticalLines, lineStructure);
 			using var horizontalLines = colorFilter.Erode(lineStructure.T());
 			Cv2.Dilate(horizontalLines, horizontalLines, lineStructure.T());
 
-			using var structure = Mat.Ones(MatType.CV_8U, new[] { 5, 1 });
-			Cv2.Erode(verticalLines, verticalLines, structure);
-
 			SmoothJaggedLines(verticalLines, false);
 			SmoothJaggedLines(horizontalLines, true);
 
-			var filteredLines = new Mat();
-			Cv2.BitwiseOr(horizontalLines, verticalLines, filteredLines);
-			CutPeeks(filteredLines);
+			var grid = CombineWithoutPeeks(verticalLines, horizontalLines);
 
-			_grid = filteredLines;
+			_grid = grid;
 			_vertGrid = verticalLines;
 		}
 
@@ -106,11 +101,12 @@ namespace RatEye.Processing
 			using var extendedLines = new Mat();
 			using var thickenedLines = new Mat();
 
-			var size = ProcessingConfig.ScaledSlotSize * 2;
-			var extendStructureSize = horizontal ? new[] { 1, (int)size } : new[] { (int)size, 1 };
+			var size = (int)(ProcessingConfig.ScaledSlotSize * 2);
+			var extendStructureSize = horizontal ? new[] { 1, size } : new[] { size, 1 };
 			using var extendStructure = Mat.Ones(MatType.CV_8U, extendStructureSize).ToMat();
 
-			using var thickenStructure = Mat.Ones(MatType.CV_8U, new[] { 3, 3 }).ToMat();
+			var thickenStructureSize = horizontal ? new[] { 3, 1 } : new[] { 1, 3 };
+			using var thickenStructure = Mat.Ones(MatType.CV_8U, thickenStructureSize).ToMat();
 
 			Cv2.Dilate(mat, extendedLines, extendStructure, null, 10);
 			Cv2.Dilate(mat, thickenedLines, thickenStructure);
@@ -118,17 +114,31 @@ namespace RatEye.Processing
 			Cv2.BitwiseAnd(extendedLines, thickenedLines, mat);
 		}
 
-		private void CutPeeks(Mat mat)
+		private Mat CombineWithoutPeeks(Mat verticalLines, Mat horizontalLines)
 		{
-			using var horizontalStructure = Mat.Ones(MatType.CV_8U, new[] { 1, 3 }).ToMat();
-			using var verticalStructure = Mat.Ones(MatType.CV_8U, new[] { 3, 1 }).ToMat();
+			using var holes = new Mat();
+			using var vLinesWithHoles = new Mat();
+			using var hLinesWithHoles = new Mat();
 
-			using var horizontalTmp = new Mat();
-			using var verticalTmp = new Mat();
+			Cv2.BitwiseAnd(verticalLines, horizontalLines, holes);
+			Cv2.BitwiseXor(verticalLines, holes, vLinesWithHoles);
+			Cv2.BitwiseXor(horizontalLines, holes, hLinesWithHoles);
 
-			Cv2.Erode(mat, horizontalTmp, horizontalStructure);
-			Cv2.Erode(mat, verticalTmp, verticalStructure);
-			Cv2.BitwiseOr(horizontalTmp, verticalTmp, mat);
+			var scaledSlotSize = (int)(ProcessingConfig.ScaledSlotSize / 2);
+			var size = scaledSlotSize - (scaledSlotSize % 2) + 1;
+
+			using var vStructure = Mat.Ones(MatType.CV_8U, new[] { size, 1 }).ToMat();
+			Cv2.Erode(vLinesWithHoles, vLinesWithHoles, vStructure);
+			Cv2.Dilate(vLinesWithHoles, vLinesWithHoles, vStructure);
+
+			using var hStructure = Mat.Ones(MatType.CV_8U, new[] { 1, size }).ToMat();
+			Cv2.Erode(hLinesWithHoles, hLinesWithHoles, hStructure);
+			Cv2.Dilate(hLinesWithHoles, hLinesWithHoles, hStructure);
+
+			var grid = new Mat();
+			Cv2.BitwiseOr(vLinesWithHoles, hLinesWithHoles, grid);
+			Cv2.BitwiseOr(grid, holes, grid);
+			return grid;
 		}
 
 		private void ParseInventoryGrid()
