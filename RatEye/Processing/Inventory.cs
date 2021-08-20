@@ -72,8 +72,6 @@ namespace RatEye.Processing
 
 		private void DetectInventoryGrid()
 		{
-			var scaledSlotSize = ProcessingConfig.ScaledSlotSize;
-
 			var minGridColor = _config.ProcessingConfig.InventoryConfig.MinGridColor;
 			var maxGridColor = _config.ProcessingConfig.InventoryConfig.MaxGridColor;
 			var minGridScalar = Scalar.FromRgb(minGridColor.R, minGridColor.G, minGridColor.B);
@@ -81,7 +79,9 @@ namespace RatEye.Processing
 			using var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
 
 			// Extract vertical and horizontal lines
-			using var lineStructure = Mat.Ones(MatType.CV_8U, new[] { (int)scaledSlotSize, 1 });
+			var scaledSlotSize = (int)ProcessingConfig.ScaledSlotSize;
+			var size = scaledSlotSize - (scaledSlotSize % 2) + 1;
+			using var lineStructure = Mat.Ones(MatType.CV_8U, new[] { size, 1 });
 			var verticalLines = colorFilter.Erode(lineStructure);
 			Cv2.Dilate(verticalLines, verticalLines, lineStructure);
 			using var horizontalLines = colorFilter.Erode(lineStructure.T());
@@ -102,6 +102,7 @@ namespace RatEye.Processing
 			using var thickenedLines = new Mat();
 
 			var size = (int)(ProcessingConfig.ScaledSlotSize * 2);
+			size = size - (size % 2) + 1;
 			var extendStructureSize = horizontal ? new[] { 1, size } : new[] { size, 1 };
 			using var extendStructure = Mat.Ones(MatType.CV_8U, extendStructureSize).ToMat();
 
