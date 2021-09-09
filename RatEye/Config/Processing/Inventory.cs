@@ -66,7 +66,7 @@ namespace RatEye
 				private void SetDefaults()
 				{
 					MinGridColor = Color.FromArgb(73, 81, 84);
-					MaxGridColor = Color.FromArgb(112, 117, 108);
+					MaxGridColor = Color.FromArgb(104, 112, 112);
 					OptimizeHighlighted = false;
 				}
 
