@@ -128,9 +128,9 @@ namespace RatEye
 
 			private void SetDefaults()
 			{
-				StaticIcons = Combine(DataDir, "name");
+				StaticIcons = Combine(DataDir, "staticIcons");
 				DynamicIcons = Combine(GetEfTTempPath(), "Icon Cache");
-				StaticCorrelationData = Combine(DataDir, "correlation.json");
+				StaticCorrelationData = Combine(StaticIcons, "correlation.json");
 				DynamicCorrelationData = Combine(DynamicIcons, "index.json");
 				UnknownIcon = Combine(DataDir, "unknown.png");
 				BenderTraineddata = DataDir;
