@@ -25,7 +25,7 @@ namespace RatEye
 				/// <summary>
 				/// Minimum color for thresholding the grid
 				/// </summary>
-				public Color MinGridColor;
+				public Color MinGridColor = Color.FromArgb(73, 81, 84);
 
 				/// <summary>
 				/// Maximum color for thresholding the grid
@@ -33,46 +33,22 @@ namespace RatEye
 				/// <remarks>
 				/// Recommended <c>Color.FromArgb(89, 89, 89)</c> when processing
 				/// highlighted items, else <c>Color.FromArgb(112, 117, 108)</c>.
+				/// This is not getting set by <see cref="OptimizeHighlighted"/>.
 				/// </remarks>
-				public Color MaxGridColor;
+				public Color MaxGridColor = Color.FromArgb(104, 112, 112);
 
 				/// <summary>
 				/// If <see langword="true"/>, all processing will be optimized for highlighted items
 				/// </summary>
-				public bool OptimizeHighlighted;
+				/// <remarks>
+				/// Consider also setting <see cref="MaxGridColor"/> to a appropriate value.
+				/// </remarks>
+				public bool OptimizeHighlighted = false;
 
 				/// <summary>
-				/// Create a new inventory config instance based on the state of <see cref="Config.GlobalConfig"/>
+				/// Create a new inventory config instance
 				/// </summary>
-				/// <param name="basedOnDefault">
-				/// Base the state on the default config rather then <see cref="Config.GlobalConfig"/>
-				/// </param>
-				public Inventory(bool basedOnDefault = false)
-				{
-					EnsureStaticInit();
-
-					if (basedOnDefault)
-					{
-						SetDefaults();
-						return;
-					}
-
-					var globalConfig = GlobalConfig.ProcessingConfig.InventoryConfig;
-					MinGridColor = globalConfig.MinGridColor;
-					MaxGridColor = globalConfig.MaxGridColor;
-					OptimizeHighlighted = globalConfig.OptimizeHighlighted;
-				}
-
-				private void SetDefaults()
-				{
-					MinGridColor = Color.FromArgb(73, 81, 84);
-					MaxGridColor = Color.FromArgb(104, 112, 112);
-					OptimizeHighlighted = false;
-				}
-
-				internal static void SetStaticDefaults() { }
-
-				internal void Apply() { }
+				public Inventory() { }
 			}
 		}
 	}

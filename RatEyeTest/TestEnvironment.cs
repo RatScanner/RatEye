@@ -1,20 +1,29 @@
 ﻿using System.IO;
+using RatEye;
 
 namespace RatEyeTest
 {
 	public class TestEnvironment
 	{
+		private static bool _initialized;
+
 		public TestEnvironment()
 		{
-			RatEye.Config.GlobalConfig.LogDebug = true;
-			RatEye.Config.GlobalConfig.Apply();
-			Setup();
+			RatEye.Config.LogDebug = true;
+			var debugFolder = RatEye.Config.Path.Debug;
+
+			if (!_initialized)
+			{
+				_initialized = true;
+				if (Directory.Exists(debugFolder)) Directory.Delete(debugFolder, true);
+				Directory.CreateDirectory(debugFolder);
+			}
 		}
 
-		protected virtual void Setup()
+		public RatEyeEngine GetDefaultRatEyeEngine()
 		{
-			if (Directory.Exists("Debug")) Directory.Delete("Debug", true);
-			Directory.CreateDirectory("Debug");
+			var config = new Config();
+			return new RatEyeEngine(config);
 		}
 
 		/// <summary>

@@ -95,6 +95,9 @@ namespace RatEye.Processing
 			}
 		}
 
+		/// <summary>
+		/// <see langword="true"/> if the icon is rotated
+		/// </summary>
 		public bool Rotated
 		{
 			get

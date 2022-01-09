@@ -1,5 +1,4 @@
 ﻿using System;
-using RatStash;
 
 namespace RatEye
 {
@@ -15,23 +14,23 @@ namespace RatEye
 			/// BaseDir directory, which is used to create most other paths from.
 			/// Defaults to the base directory of the current app domain.
 			/// </summary>
-			private static string BaseDir;
+			private static string BaseDir => AppDomain.CurrentDomain.BaseDirectory;
 
 			/// <summary>
 			/// DataDir directory, which is used to create some data related paths.
 			/// Defaults to <code>%BaseDir%/DataDir</code>
 			/// </summary>
-			private static string DataDir;
+			private static string DataDir => Combine(BaseDir, "Data");
 
 			/// <summary>
 			/// Path of the folder containing static icons
 			/// </summary>
-			public string StaticIcons;
+			public string StaticIcons = Combine(DataDir, "name");
 
 			/// <summary>
 			/// Path of the folder containing dynamic icons
 			/// </summary>
-			public string DynamicIcons;
+			public string DynamicIcons = Combine(GetEfTTempPath(), "Icon Cache");
 
 			/// <summary>
 			/// Path of the file containing correlation data for icons and uid's.
@@ -45,128 +44,78 @@ namespace RatEye
 			/// ]
 			/// </code>
 			/// </summary>
-			public string StaticCorrelationData;
+			public string StaticCorrelationData = Combine(DataDir, "correlation.json");
 
 			/// <summary>
 			/// Path of the file containing correlation data for icons and uid's.
 			/// The file must be a json file and be able to be parsed by <see cref="RatStash"/>.
 			/// </summary>
-			public string DynamicCorrelationData;
+			public string DynamicCorrelationData = Combine(GetEfTTempPath(), "Icon Cache", "index.json");
 
 			/// <summary>
 			/// Path of the icon to return when no icon matches the query
 			/// </summary>
-			public string UnknownIcon;
+			public string UnknownIcon = Combine(DataDir, "unknown.png");
 
 			/// <summary>
-			/// Path to the folder containing the trained LSTM model of the "bender" font
+			/// Path to the folder containing LSTM model files
 			/// </summary>
-			/// <remarks>File has to be named <c>"bender.traineddata"</c>.</remarks>
-			public string BenderTraineddata;
+			/// <remarks>Files have to be of the format <c>[ISO-639-3].traineddata</c>.</remarks>
+			public string TrainedData = Combine(DataDir, "traineddata");
 
 			/// <summary>
-			/// Path the the file, which will be used to create a <see cref="RatStash.Database"/> instance
+			/// Path to the file, which will be used to create the <see cref="RatStash.Database"/> instance
 			/// </summary>
 			/// <remarks>
 			/// For more details on <see cref="RatStash"/>, see <see href="https://github.com/RatScanner/RatStash"/>
 			/// </remarks>
-			public static string ItemData
-			{
-				get
-				{
-					if (_itemData == null) EnsureStaticInit();
-					return _itemData;
-				}
-				set
-				{
-					RatStashDB = Database.FromFile(value);
-					_itemData = value;
-				}
-			}
+			public string ItemData = Combine(DataDir, "items.json");
 
-			private static string _itemData;
+			/// <summary>
+			/// Path the folder, which contains localization files used to create the <see cref="RatStash.Database"/> instance
+			/// </summary>
+			/// <remarks>
+			/// For more details on <see cref="RatStash"/>, see <see href="https://github.com/RatScanner/RatStash"/>
+			/// </remarks>
+			public string ItemLocales = Combine(DataDir, "locales");
 
 			/// <summary>
 			/// Path of the debug folder which is used to store debug information
 			/// </summary>
-			public string Debug;
+			public static string Debug = Combine(BaseDir, "Debug");
 
 			/// <summary>
 			/// Path of the log file
 			/// </summary>
-			public string LogFile;
+			public static string LogFile = Combine(BaseDir, "Log.txt");
 
 			/// <summary>
-			/// Create a new path config instance based on the state of <see cref="Config.GlobalConfig"/>
+			/// Create a new path config instance
 			/// </summary>
-			/// <param name="basedOnDefault">
-			/// BaseDir the state on the default config rather then <see cref="Config.GlobalConfig"/>
-			/// </param>
-			public Path(bool basedOnDefault = false)
-			{
-				EnsureStaticInit();
-
-				if (basedOnDefault)
-				{
-					SetDefaults();
-					return;
-				}
-
-				var globalConfig = GlobalConfig.PathConfig;
-
-				StaticIcons = globalConfig.StaticIcons;
-				DynamicIcons = globalConfig.DynamicIcons;
-				StaticCorrelationData = globalConfig.StaticCorrelationData;
-				DynamicCorrelationData = globalConfig.DynamicCorrelationData;
-				UnknownIcon = globalConfig.UnknownIcon;
-				BenderTraineddata = globalConfig.BenderTraineddata;
-				// Do not allow overwrite of ItemData since it static
-				// ItemData = globalConfig.ItemData;
-				Debug = globalConfig.Debug;
-				LogFile = globalConfig.LogFile;
-			}
-
-			private void SetDefaults()
-			{
-				StaticIcons = Combine(DataDir, "name");
-				DynamicIcons = Combine(GetEfTTempPath(), "Icon Cache");
-				StaticCorrelationData = Combine(DataDir, "correlation.json");
-				DynamicCorrelationData = Combine(DynamicIcons, "index.json");
-				UnknownIcon = Combine(DataDir, "unknown.png");
-				BenderTraineddata = DataDir;
-				Debug = Combine(BaseDir, "Debug");
-				LogFile = Combine(BaseDir, "Log.txt");
-			}
-
-			internal static void SetStaticDefaults()
-			{
-				BaseDir = AppDomain.CurrentDomain.BaseDirectory;
-				DataDir = Combine(BaseDir, "Data");
-				_itemData = Combine(DataDir, "items.json");
-			}
+			public Path() { }
 
 			/// <summary>
 			/// Combine two paths
 			/// </summary>
 			/// <param name="basePath">BaseDir path</param>
-			/// <param name="x">Path to be added</param>
+			/// <param name="a">Path to be added</param>
+			/// <param name="b">Path to be added</param>
+			/// <param name="c">Path to be added</param>
 			/// <returns>The combined path</returns>
-			private static string Combine(string basePath, string x)
+			private static string Combine(string basePath, string a, string b = "", string c = "")
 			{
-				return System.IO.Path.Combine(basePath, x);
+				return System.IO.Path.Combine(basePath, a, b, c);
 			}
 
 			/// <summary>
 			/// Get the directory used by eft for temporary files like the icon cache
 			/// </summary>
 			/// <returns>The directory used by eft for temporary files</returns>
-			private string GetEfTTempPath()
+			private static string GetEfTTempPath()
 			{
 				var eftTempDir = "Battlestate Games\\EscapeFromTarkov\\";
 				return Combine(System.IO.Path.GetTempPath(), eftTempDir);
 			}
-
-			internal void Apply() { }
 		}
 	}
 }

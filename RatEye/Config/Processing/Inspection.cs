@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.IO;
 using RatEye.Properties;
+using Tesseract;
 
 namespace RatEye
 {
@@ -16,42 +17,42 @@ namespace RatEye
 				/// <summary>
 				/// Marker bitmap to identify regions of interest. This should be a cropped image of the magnifier icon
 				/// </summary>
-				public Bitmap Marker;
+				public Bitmap Marker = new Bitmap(new MemoryStream(Resources.icon_search));
 
 				/// <summary>
 				/// Detection threshold of the marker bitmap
 				/// </summary>
-				public float MarkerThreshold;
+				public float MarkerThreshold = 0.93f;
 
 				/// <summary>
 				/// If true, allows to process the inspection window of containers
 				/// </summary>
-				public bool EnableContainers;
+				public bool EnableContainers = false;
 
 				/// <summary>
 				/// The scale of the marker used by item inspection windows
 				/// </summary>
-				public float MarkerItemScale;
+				public float MarkerItemScale = 17f / 19f;
 
 				/// <summary>
 				/// The scale of the marker used by container inspection windows
 				/// </summary>
-				public float MarkerContainerScale;
+				public float MarkerContainerScale = 1f;
 
 				/// <summary>
 				/// The background color used for the marker if it uses a alpha channel
 				/// </summary>
-				public Color MarkerBackgroundColor;
+				public Color MarkerBackgroundColor = Color.FromArgb(25, 27, 27);
 
 				/// <summary>
 				/// Unscaled width of the box which will be searched for the title
 				/// </summary>
-				public int BaseTitleSearchWidth;
+				public int BaseTitleSearchWidth = 500;
 
 				/// <summary>
 				/// Unscaled height of the box which will be searched for the title
 				/// </summary>
-				public int BaseTitleSearchHeight;
+				public int BaseTitleSearchHeight = 17;
 
 				/// <summary>
 				/// Right padding of the title search box, used when the close button got detected
@@ -60,7 +61,7 @@ namespace RatEye
 				/// </para>
 				/// See <see cref="CloseButtonColorLowerBound"/> and <see cref="CloseButtonColorUpperBound"/>.
 				/// </summary>
-				public int BaseTitleSearchRightPadding;
+				public int BaseTitleSearchRightPadding = 64;
 
 				/// <summary>
 				/// The horizontal offset factor of the box which will be searched for the title
@@ -70,69 +71,27 @@ namespace RatEye
 				/// <code>searchBox.left = detectedMarker.left + (Marker.width * Scale)</code>
 				/// </para>
 				/// </summary>
-				public float HorizontalTitleSearchOffsetFactor;
+				public float HorizontalTitleSearchOffsetFactor = 1.2f;
 
 				/// <summary>
 				/// Lower bound color to match the close button which is positioned at the top right of inspection windows
 				/// </summary>
-				public Color CloseButtonColorLowerBound;
+				public Color CloseButtonColorLowerBound = Color.FromArgb(50, 10, 10);
 
 				/// <summary>
 				/// Upper bound color to match the close button which is positioned at the top right of inspection windows
 				/// </summary>
-				public Color CloseButtonColorUpperBound;
+				public Color CloseButtonColorUpperBound = Color.FromArgb(80, 15, 15);
 
 				/// <summary>
-				/// Create a new inspection config instance based on the state of <see cref="Config.GlobalConfig"/>
+				/// Tesseract Engine instance used and set by <see cref="RatEye.Processing.Inspection"/>
 				/// </summary>
-				/// <param name="basedOnDefault">
-				/// Base the state on the default config rather then <see cref="Config.GlobalConfig"/>
-				/// </param>
-				public Inspection(bool basedOnDefault = false)
-				{
-					EnsureStaticInit();
+				internal TesseractEngine TesseractEngine;
 
-					if (basedOnDefault)
-					{
-						SetDefaults();
-						return;
-					}
-
-					var globalConfig = GlobalConfig.ProcessingConfig.InspectionConfig;
-
-					Marker = globalConfig.Marker;
-					MarkerThreshold = globalConfig.MarkerThreshold;
-					EnableContainers = globalConfig.EnableContainers;
-					MarkerItemScale = globalConfig.MarkerItemScale;
-					MarkerContainerScale = globalConfig.MarkerContainerScale;
-					MarkerBackgroundColor = globalConfig.MarkerBackgroundColor;
-					BaseTitleSearchWidth = globalConfig.BaseTitleSearchWidth;
-					BaseTitleSearchHeight = globalConfig.BaseTitleSearchHeight;
-					BaseTitleSearchRightPadding = globalConfig.BaseTitleSearchRightPadding;
-					HorizontalTitleSearchOffsetFactor = globalConfig.HorizontalTitleSearchOffsetFactor;
-					CloseButtonColorLowerBound = globalConfig.CloseButtonColorLowerBound;
-					CloseButtonColorUpperBound = globalConfig.CloseButtonColorUpperBound;
-				}
-
-				private void SetDefaults()
-				{
-					Marker = new Bitmap(new MemoryStream(Resources.icon_search));
-					MarkerThreshold = 0.93f;
-					EnableContainers = false;
-					MarkerItemScale = 17f / 19f;
-					MarkerContainerScale = 1f;
-					MarkerBackgroundColor = Color.FromArgb(25, 27, 27);
-					BaseTitleSearchWidth = 500;
-					BaseTitleSearchHeight = 17;
-					BaseTitleSearchRightPadding = 64;
-					HorizontalTitleSearchOffsetFactor = 1.2f;
-					CloseButtonColorLowerBound = Color.FromArgb(50, 10, 10);
-					CloseButtonColorUpperBound = Color.FromArgb(80, 15, 15);
-				}
-
-				internal static void SetStaticDefaults() { }
-
-				internal void Apply() { }
+				/// <summary>
+				/// Create a new inspection config instance
+				/// </summary>
+				public Inspection() { }
 			}
 		}
 	}

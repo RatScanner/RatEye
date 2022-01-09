@@ -2,28 +2,16 @@
 using System.IO;
 using RatEye;
 using Xunit;
-using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEyeTest
 {
-	[Collection("SerialTest")]
 	public class StaticIconTest : TestEnvironment
 	{
-		protected override void Setup()
-		{
-			Config.GlobalConfig.PathConfig.StaticIcons = "Data/StaticIcons";
-			Config.GlobalConfig.PathConfig.StaticCorrelationData = "Data/StaticIcons/correlation.json";
-			Config.GlobalConfig.ProcessingConfig.IconConfig.UseStaticIcons = true;
-			Config.GlobalConfig.ProcessingConfig.IconConfig.UseDynamicIcons = false;
-			Config.GlobalConfig.Apply();
-			base.Setup();
-		}
-
 		[Fact]
 		public void ItemFHD()
 		{
 			var image = new Bitmap("TestData/FHD_Inventory2.png");
-			var inventory = new Inventory(image);
+			var inventory = GetRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(735, 310));
 			Assert.Equal("Peltor ComTac 2 headset", icon.Item.Name);
 			Assert.Equal("5645bcc04bdc2d363b8b4572", icon.Item.Id);
@@ -36,7 +24,7 @@ namespace RatEyeTest
 		public void ItemFHDRotated()
 		{
 			var image = new Bitmap("TestData/FHD_Inventory2.png");
-			var inventory = new Inventory(image);
+			var inventory = GetRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(1080, 580));
 			Assert.Equal("5448fee04bdc2dbc018b4567", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_water_bottle_loot.png");
@@ -47,20 +35,49 @@ namespace RatEyeTest
 		[Fact]
 		public void ItemQHD()
 		{
+			var scale = Config.Processing.Resolution2Scale(2560, 1440);
+			var ratEye = GetRatEyeEngine(scale);
+
 			var image = new Bitmap("TestData/QHD_Container.png");
-			var inventory = new Inventory(image, new Config()
-			{
-				ProcessingConfig = new Config.Processing()
-				{
-					Scale = Config.Processing.Resolution2Scale(2560, 1440),
-				},
-			});
+			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(640, 840));
 			Assert.Equal("Wrench", icon.Item.Name);
 			Assert.Equal("590c311186f77424d1667482", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_tools_wrench.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.False(icon.Rotated);
+		}
+
+		[Fact]
+		public void GridTest()
+		{
+			var scale = Config.Processing.Resolution2Scale(1920, 1080);
+			var ratEye = GetRatEyeEngine(scale);
+
+			var image = new Bitmap("TestData/FHD_InventoryHighlighted3H.png");
+			var inventory = ratEye.NewInventory(image);
+			var icon = inventory.LocateIcon();
+		}
+
+		private RatEyeEngine GetRatEyeEngine(float scale = 1f)
+		{
+			var config = new Config()
+			{
+				PathConfig = new Config.Path()
+				{
+					StaticIcons = "Data/StaticIcons",
+					StaticCorrelationData = "Data/StaticIcons/correlation.json",
+				},
+				ProcessingConfig = new Config.Processing()
+				{
+					IconConfig = new Config.Processing.Icon()
+					{
+						UseStaticIcons = true,
+						UseDynamicIcons = false,
+					},
+				},
+			};
+			return new RatEyeEngine(config);
 		}
 	}
 }

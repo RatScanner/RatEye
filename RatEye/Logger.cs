@@ -22,20 +22,20 @@ namespace RatEye
 
 		internal static void LogDebug(string message)
 		{
-			if (Config.GlobalConfig.LogDebug) AppendToLog("[Debug] " + message);
+			if (Config.LogDebug) AppendToLog("[Debug] " + message);
 		}
 
 		internal static void LogDebugBitmap(Bitmap bitmap, string fileName = "bitmap")
 		{
-			if (Config.GlobalConfig.LogDebug)
+			if (Config.LogDebug)
 			{
-				bitmap.Save(GetUniquePath(Config.GlobalConfig.PathConfig.Debug, fileName, ".png"));
+				bitmap.Save(GetUniquePath(Config.Path.Debug, fileName, ".png"));
 			}
 		}
 
 		internal static void LogDebugMat(OpenCvSharp.Mat mat, string fileName = "mat")
 		{
-			if (!Config.GlobalConfig.LogDebug) return;
+			if (!Config.LogDebug) return;
 
 			var tmp = mat;
 			if (mat.Type() == MatType.CV_32FC1)
@@ -43,7 +43,7 @@ namespace RatEye
 				tmp = new Mat(mat.Size(), MatType.CV_8UC1);
 				mat.ConvertTo(tmp, MatType.CV_8UC1, 255);
 			}
-			tmp.SaveImage(GetUniquePath(Config.GlobalConfig.PathConfig.Debug, fileName, ".png"));
+			tmp.SaveImage(GetUniquePath(Config.Path.Debug, fileName, ".png"));
 		}
 
 		private static string GetUniquePath(string basePath, string fileName, string extension)
@@ -82,7 +82,7 @@ namespace RatEye
 		private static void AppendToLogRaw(string text)
 		{
 			System.Diagnostics.Debug.WriteLine(text);
-			File.AppendAllText(Config.GlobalConfig.PathConfig.LogFile, text, Encoding.UTF8);
+			File.AppendAllText(Config.Path.LogFile, text, Encoding.UTF8);
 		}
 
 		private static void ProcessBacklog()

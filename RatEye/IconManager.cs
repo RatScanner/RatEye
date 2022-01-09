@@ -96,11 +96,11 @@ namespace RatEye
 		/// <summary>
 		/// Constructor for icon manager object
 		/// </summary>
-		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
+		/// <param name="config">The config to use for this instance></param>
 		/// <remarks>Depends on <see cref="Config.Processing.Icon"/> and <see cref="Config.Path"/></remarks>
-		internal IconManager(Config overrideConfig = null)
+		internal IconManager(Config config)
 		{
-			_config = overrideConfig ?? Config.GlobalConfig;
+			_config = config;
 
 			var iconConfig = _config.ProcessingConfig.IconConfig;
 			if (iconConfig.UseStaticIcons) LoadStaticIcons();
@@ -359,7 +359,7 @@ namespace RatEye
 				var uid = correlation.GetValue("uid")?.ToString();
 
 				var iconKey = GetIconKey(iconPath, IconType.Static);
-				correlationData[iconKey] = Config.RatStashDB.GetItem(uid);
+				correlationData[iconKey] = _config.RatStashDB.GetItem(uid);
 			}
 
 			_staticCorrelationDataLock.EnterWriteLock();
@@ -373,8 +373,8 @@ namespace RatEye
 
 			Dictionary<int, (Item item, ItemExtraInfo itemExtraInfo)> parsedIndex;
 			var legacyIndex = _config.ProcessingConfig.IconConfig.UseLegacyCacheIndex;
-			if (legacyIndex) parsedIndex = Config.RatStashDB.ParseItemCacheIndex(path);
-			else parsedIndex = Config.RatStashDB.ParseItemCacheHashIndex(path);
+			if (legacyIndex) parsedIndex = _config.RatStashDB.ParseItemCacheIndex(path);
+			else parsedIndex = _config.RatStashDB.ParseItemCacheHashIndex(path);
 
 			var correlationData = parsedIndex.ToDictionary(
 				x => GetIconKey(x.Key + ".png", IconType.Dynamic), x => x.Value);

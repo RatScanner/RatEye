@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using OpenCvSharp.Text;
 using RatStash;
+using Tesseract;
 
 namespace RatEye.Processing
 {
@@ -13,7 +13,6 @@ namespace RatEye.Processing
 	{
 		private readonly Config _config;
 		private readonly Bitmap _image;
-		private static OCRTesseract _tesseractInstance;
 
 		private Config.Path PathConfig => _config.PathConfig;
 		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
@@ -120,11 +119,11 @@ namespace RatEye.Processing
 		/// Constructor for inspection view processing object
 		/// </summary>
 		/// <param name="image">Image of the inspection view which will be processed</param>
-		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
+		/// <param name="config">The config to use for this instance></param>
 		/// <remarks>Provided image has to be in RGB</remarks>
-		public Inspection(Bitmap image, Config overrideConfig = null)
+		public Inspection(Bitmap image, Config config)
 		{
-			_config = overrideConfig ?? Config.GlobalConfig;
+			_config = config;
 			_image = image;
 		}
 
@@ -270,50 +269,53 @@ namespace RatEye.Processing
 		private string OCR(Bitmap image)
 		{
 			// Setup tesseract
-			var text = "";
-			using (var mat = image.ToMat())
-			{
-				// Gray scale image
-				Logger.LogDebug("Gray scaling...");
-				var cvu83 = mat.CvtColor(ColorConversionCodes.BGR2GRAY, 1);
+			using var mat = image.ToMat();
 
-				// Binarize image
-				Logger.LogDebug("Binarizing...");
-				cvu83 = cvu83.Threshold(120, 255, ThresholdTypes.BinaryInv);
+			// Gray scale image
+			Logger.LogDebug("Gray scaling...");
+			var cvu83 = mat.CvtColor(ColorConversionCodes.BGR2GRAY, 1);
 
-				// OCR
-				Logger.LogDebug("Applying OCR...");
-				GetTesseractInstance().Run(cvu83, out text, out _, out _, out _, ComponentLevels.TextLine);
-			}
+			// Binarize image
+			Logger.LogDebug("Binarizing...");
+			cvu83 = cvu83.Threshold(120, 255, ThresholdTypes.BinaryInv);
+
+			// Convert to Pix
+			using var pix = PixConverter.ToPix(cvu83.ToBitmap());
+
+			// OCR
+			Logger.LogDebug("Applying OCR...");
+			using var result = GetTesseractEngine().Process(pix);
+			var text = result.GetText();
 
 			Logger.LogDebug("Read: " + text);
-			return text;
+			return text.Trim();
 		}
 
 		/// <summary>
 		/// Creates an instance of the OCRTesseract class. Initializes Tesseract.
 		/// </summary>
 		/// <returns>Tesseract instance trained for the bender font</returns>
-		private OCRTesseract GetTesseractInstance()
+		private TesseractEngine GetTesseractEngine()
 		{
 			// Return if tesseract instance was already created
-			if (_tesseractInstance != null) return _tesseractInstance;
+			var tesseractEngine = InspectionConfig.TesseractEngine;
+			if (tesseractEngine != null) return tesseractEngine;
 
 			// Check if trained data is present
-			var traineddataPath = Path.Combine(PathConfig.BenderTraineddata, "bender.traineddata");
+			var langCode = _config.ProcessingConfig.Language.ToISO3Code();
+			var traineddataPath = $"{PathConfig.TrainedData}\\{langCode}.traineddata";
 			if (!File.Exists(traineddataPath))
 			{
 				var message = "Could not find traineddata at: " + traineddataPath;
-				var ex = new ArgumentException(message, PathConfig.BenderTraineddata);
+				var ex = new ArgumentException(message, PathConfig.TrainedData);
 				throw ex;
 			}
 
 			// Create a tesseract instance
-			var datapath = PathConfig.BenderTraineddata;
-			var language = "bender";
+			InspectionConfig.TesseractEngine = new TesseractEngine(PathConfig.TrainedData, langCode, EngineMode.LstmOnly);
+			InspectionConfig.TesseractEngine.DefaultPageSegMode = PageSegMode.RawLine;
 
-			_tesseractInstance = OCRTesseract.Create(datapath, language, null, 3, 7);
-			return _tesseractInstance;
+			return InspectionConfig.TesseractEngine;
 		}
 
 		/// <summary>
@@ -354,7 +356,7 @@ namespace RatEye.Processing
 		/// <returns>Item instance</returns>
 		private Item GetItem()
 		{
-			var items = Config.RatStashDB.GetItems();
+			var items = _config.RatStashDB.GetItems();
 			return DetectedInspectionType switch
 			{
 				InspectionType.Item => items.Aggregate((i1, i2) =>

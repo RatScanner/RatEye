@@ -32,10 +32,10 @@ namespace RatEye.Processing
 		/// Constructor for inventory view processing object
 		/// </summary>
 		/// <param name="image">Image of the inventory which will be processed</param>
-		/// <param name="overrideConfig">When provided, will be used instead of <see cref="Config.GlobalConfig"/></param>
-		public Inventory(System.Drawing.Bitmap image, Config overrideConfig = null)
+		/// <param name="config">The config to use for this instance></param>
+		internal Inventory(System.Drawing.Bitmap image, Config config)
 		{
-			_config = overrideConfig ?? Config.GlobalConfig;
+			_config = config;
 			_image = image.ToMat();
 		}
 
@@ -77,6 +77,8 @@ namespace RatEye.Processing
 			var minGridScalar = Scalar.FromRgb(minGridColor.R, minGridColor.G, minGridColor.B);
 			var maxGridScalar = Scalar.FromRgb(maxGridColor.R, maxGridColor.G, maxGridColor.B);
 			using var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
+
+			Logger.LogDebugMat(colorFilter, "colorFilter");
 
 			// Extract vertical and horizontal lines
 			var scaledSlotSize = (int)ProcessingConfig.ScaledSlotSize;
@@ -280,7 +282,7 @@ namespace RatEye.Processing
 		{
 			SatisfyState(State.GridParsed);
 
-#if DEBUG
+//#if DEBUG
 			Logger.LogDebugMat(_grid, "grid");
 
 			using var debugGrid = new Mat();
@@ -297,7 +299,7 @@ namespace RatEye.Processing
 				}
 			}
 			Logger.LogDebugMat(debugGrid, "icons");
-#endif
+//#endif
 
 			if (position == null) position = new Vector2(_grid.Size()) / 2;
 
