@@ -121,7 +121,7 @@ namespace RatEye.Processing
 		/// <param name="image">Image of the inspection view which will be processed</param>
 		/// <param name="config">The config to use for this instance></param>
 		/// <remarks>Provided image has to be in RGB</remarks>
-		public Inspection(Bitmap image, Config config)
+		internal Inspection(Bitmap image, Config config)
 		{
 			_config = config;
 			_image = image;
