@@ -27,7 +27,7 @@ namespace RatEye
 			var locales = _config.PathConfig.ItemLocales;
 			var langCode = _config.ProcessingConfig.Language.ToBSGCode();
 			var locale = System.IO.Path.Combine(locales, $"{langCode}.json");
-			config.RatStashDB = RatStash.Database.FromFile(itemData, false, locale);
+			config.RatStashDB = RatStash.Database.FromFile(itemData, true, locale);
 
 			_config.IconManager = new IconManager(config);
 		}

@@ -24,9 +24,26 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD_Item_Russian.png");
 			var inspType = Inspection.InspectionType.Item;
 			var title = "Дульный тормоз-компенсатор Зенит \"ДТК-1\" 7.62x39 и 5.45x39 для АК";
-			ConductTest(1f, image, inspType, 14, 12, title, "5649ab884bdc2ded0b8b457f", Language.Russian);
+			ConductTest(1f, image, inspType, 14, 12, title, "5649ab884bdc2ded0b8b457f", Language.Russian, 0.7f);
 		}
 
+		[Fact]
+		public void ItemFHDRussianMixed()
+		{
+			var image = new Bitmap("TestData/FHD_Item_Russian_Mixed.png");
+			var inspType = Inspection.InspectionType.Item;
+			var title = "Бронежилет PACA Soft Armor";
+			ConductTest(1f, image, inspType, 16, 17, title, "5648a7494bdc2d9d488b4583", Language.Russian, 0.7f);
+		}
+
+		[Fact]
+		public void ItemFHDChineseMixed()
+		{
+			var image = new Bitmap("TestData/FHD_Item_Chinese_Mixed.png");
+			var inspType = Inspection.InspectionType.Item;
+			var title = "6B23-1护甲（数码丛林迷彩）";
+			ConductTest(1f, image, inspType, 25, 17, title, "5c0e5bab86f77461f55ed1f3", Language.Chinese, 0.5f);
+		}
 
 		[Fact]
 		public void ItemUHD()
@@ -63,13 +80,14 @@ namespace RatEyeTest
 			int posY,
 			string title,
 			string id,
-			Language language = Language.English)
+			Language language = Language.English,
+			float confidenceMul = 1f)
 		{
-			var fastRatEye = GetRatEyeEngine(scale, language, "fast");
 			var bestRatEye = GetRatEyeEngine(scale, language, "best");
+			ConductTestSub(bestRatEye, image, inspectionType, posX, posY, title, id, 0.9f * confidenceMul);
 
-			ConductTestSub(fastRatEye, image, inspectionType, posX, posY, title, id, 0.7f);
-			ConductTestSub(bestRatEye, image, inspectionType, posX, posY, title, id, 0.9f);
+			var fastRatEye = GetRatEyeEngine(scale, language, "fast");
+			ConductTestSub(fastRatEye, image, inspectionType, posX, posY, title, id, 0.7f * confidenceMul);
 		}
 
 		private static void ConductTestSub(
@@ -90,7 +108,6 @@ namespace RatEyeTest
 			Assert.Equal(posX, inspection.MarkerPosition.X);
 			Assert.Equal(posY, inspection.MarkerPosition.Y);
 			Assert.InRange(inspection.Title.NormedLevenshteinDistance(title), minTitleDistance, 1f);
-			Debug.WriteLine("ZASDA " + inspection.Title + ": " + inspection.Title.NormedLevenshteinDistance(title));
 			Assert.Equal(id, inspection.Item.Id);
 		}
 

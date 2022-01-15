@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -288,7 +289,7 @@ namespace RatEye.Processing
 			var text = result.GetText();
 
 			Logger.LogDebug("Read: " + text);
-			return text.Trim();
+			return text.CyrillicToLatin().Trim();
 		}
 
 		/// <summary>
@@ -311,8 +312,21 @@ namespace RatEye.Processing
 				throw ex;
 			}
 
+			// Load additional language to expand the primary one
+			var addLang = _config.ProcessingConfig.Language switch
+			{
+				//Language.Chinese => "eng",
+				Language.Czech => "+eng",
+				Language.Japanese => "+eng",
+				Language.Korean => "+eng",
+				Language.Russian => "+eng",
+				_ => "",
+			};
+
+			var language = langCode + addLang;
+
 			// Create a tesseract instance
-			InspectionConfig.TesseractEngine = new TesseractEngine(PathConfig.TrainedData, langCode, EngineMode.LstmOnly);
+			InspectionConfig.TesseractEngine = new TesseractEngine(PathConfig.TrainedData, language, EngineMode.LstmOnly);
 			InspectionConfig.TesseractEngine.DefaultPageSegMode = PageSegMode.RawLine;
 
 			return InspectionConfig.TesseractEngine;
@@ -361,14 +375,14 @@ namespace RatEye.Processing
 			{
 				InspectionType.Item => items.Aggregate((i1, i2) =>
 				{
-					var i1Dist = i1.Name.NormedLevenshteinDistance(Title);
-					var i2Dist = i2.Name.NormedLevenshteinDistance(Title);
+					var i1Dist = i1.Name.CyrillicToLatin().NormedLevenshteinDistance(Title);
+					var i2Dist = i2.Name.CyrillicToLatin().NormedLevenshteinDistance(Title);
 					return i1Dist > i2Dist ? i1 : i2;
 				}),
 				InspectionType.Container => items.Aggregate((i1, i2) =>
 				{
-					var i1Dist = i1.ShortName.NormedLevenshteinDistance(Title);
-					var i2Dist = i2.ShortName.NormedLevenshteinDistance(Title);
+					var i1Dist = i1.ShortName.CyrillicToLatin().NormedLevenshteinDistance(Title);
+					var i2Dist = i2.ShortName.CyrillicToLatin().NormedLevenshteinDistance(Title);
 					return i1Dist > i2Dist ? i1 : i2;
 				}),
 				InspectionType.Unknown => null,
