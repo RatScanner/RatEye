@@ -7,7 +7,11 @@ namespace RatEye
 {
 	public class RatEyeEngine
 	{
-		private Config _config;
+		/// <summary>
+		/// The config which is used for this <see cref="RatEyeEngine"/>
+		/// </summary>
+		/// <remarks>Do not modify this config object</remarks>
+		public Config Config { get; }
 
 		/// <summary>
 		/// Create a <see cref="RatEyeEngine"/> instance which is the basis of all processing
@@ -16,30 +20,30 @@ namespace RatEye
 		/// <remarks>Do not modify the config after passing it</remarks>
 		public RatEyeEngine(Config config)
 		{
-			_config = config;
-			var processingCfg = _config.ProcessingConfig;
+			Config = config;
+			var processingCfg = Config.ProcessingConfig;
 			var inspectionCfg = processingCfg.InspectionConfig;
 			var inventoryCfg = processingCfg.InventoryConfig;
 			var iconCfg = processingCfg.IconConfig;
 
 			// Setup RatStash database
-			var itemData = _config.PathConfig.ItemData;
-			var locales = _config.PathConfig.ItemLocales;
-			var langCode = _config.ProcessingConfig.Language.ToBSGCode();
+			var itemData = Config.PathConfig.ItemData;
+			var locales = Config.PathConfig.ItemLocales;
+			var langCode = Config.ProcessingConfig.Language.ToBSGCode();
 			var locale = System.IO.Path.Combine(locales, $"{langCode}.json");
 			config.RatStashDB = RatStash.Database.FromFile(itemData, true, locale);
 
-			_config.IconManager = new IconManager(config);
+			Config.IconManager = new IconManager(config);
 		}
 
 		public Inspection NewInspection(Bitmap image)
 		{
-			return new Inspection(image, _config);
+			return new Inspection(image, Config);
 		}
 
 		public Inventory NewInventory(Bitmap image)
 		{
-			return new Inventory(image, _config);
+			return new Inventory(image, Config);
 		}
 	}
 }
