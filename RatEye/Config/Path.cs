@@ -1,4 +1,5 @@
 ﻿using System;
+using Tesseract;
 
 namespace RatEye
 {
@@ -78,6 +79,15 @@ namespace RatEye
 			/// For more details on <see cref="RatStash"/>, see <see href="https://github.com/RatScanner/RatStash"/>
 			/// </remarks>
 			public string ItemLocales = Combine(DataDir, "locales");
+
+			/// <summary>
+			/// Path at which tesseract searches for dependencies
+			/// </summary>
+			public static string TesseractLibSearchPath
+			{
+				get => TesseractEnviornment.CustomSearchPath;
+				set => TesseractEnviornment.CustomSearchPath = value;
+			}
 
 			/// <summary>
 			/// Path of the debug folder which is used to store debug information
