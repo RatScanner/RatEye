@@ -93,6 +93,8 @@ namespace RatEye.Processing
 			SmoothJaggedLines(horizontalLines, true);
 
 			var grid = CombineWithoutPeeks(verticalLines, horizontalLines);
+			Cv2.Dilate(grid, grid, Mat.Ones(2, 2));
+			Cv2.Erode(grid, grid, Mat.Ones(2, 2));
 
 			_grid = grid;
 			_vertGrid = verticalLines;
