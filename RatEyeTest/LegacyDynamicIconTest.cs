@@ -30,7 +30,7 @@ namespace RatEyeTest
 			};
 			var ratEye = new RatEyeEngine(config);
 
-			var image = new Bitmap("TestData/FHD_Inventory2.png");
+			var image = new Bitmap("TestData/FHD/Inventory2.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(960, 525));
 			Assert.Equal("OKP-7 reflex sight (dovetail)", icon.Item.Name);
@@ -67,7 +67,7 @@ namespace RatEyeTest
 			};
 			var ratEye = new RatEyeEngine(config);
 
-			var image = new Bitmap("TestData/FHD_InventoryHighlighted2.png");
+			var image = new Bitmap("TestData/FHD/InventoryHighlighted2.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon();
 			Assert.Equal("MP-133 12ga pump-action shotgun", icon.Item.Name);

@@ -29,7 +29,7 @@ namespace RatEyeTest
 			};
 			var ratEye = new RatEyeEngine(config);
 
-			var image = new Bitmap("TestData/FHD_InventoryH.png");
+			var image = new Bitmap("TestData/FHD/InventoryH.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(1800, 600));
 			Assert.Equal("5ea034eb5aad6446a939737b", icon.Item.Id);
@@ -64,7 +64,7 @@ namespace RatEyeTest
 			};
 			var ratEye = new RatEyeEngine(config);
 
-			var image = new Bitmap("TestData/FHD_InventoryHighlighted2H.png");
+			var image = new Bitmap("TestData/FHD/InventoryHighlighted2H.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon();
 			Assert.Equal("5c0505e00db834001b735073", icon.Item.Id);

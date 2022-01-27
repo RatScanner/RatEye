@@ -99,6 +99,11 @@
 
 		public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
 
+		/// <summary>
+		/// X * Y
+		/// </summary>
+		public int Area => X * Y;
+
 		public override bool Equals(object obj)
 		{
 			if ((obj == null) || GetType() != obj.GetType()) return false;

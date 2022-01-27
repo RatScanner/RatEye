@@ -94,5 +94,13 @@
     {
         "icon": "item_tools_wrench.png",
         "uid": "590c311186f77424d1667482"
+    },
+	{
+        "icon": "item_morphine_loot.png",
+        "uid": "544fb3f34bdc2d03748b456a"
+    },
+    {
+        "icon": "item_stimulator_propital_loot.png",
+        "uid": "5c0e530286f7747fa1419862"
     }
 ]

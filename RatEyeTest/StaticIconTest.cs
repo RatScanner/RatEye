@@ -10,7 +10,7 @@ namespace RatEyeTest
 		[Fact]
 		public void ItemFHD()
 		{
-			var image = new Bitmap("TestData/FHD_Inventory2.png");
+			var image = new Bitmap("TestData/FHD/Inventory2.png");
 			var inventory = GetRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(735, 310));
 			Assert.Equal("Peltor ComTac 2 headset", icon.Item.Name);
@@ -23,7 +23,7 @@ namespace RatEyeTest
 		[Fact]
 		public void ItemFHDRotated()
 		{
-			var image = new Bitmap("TestData/FHD_Inventory2.png");
+			var image = new Bitmap("TestData/FHD/Inventory2.png");
 			var inventory = GetRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(1080, 580));
 			Assert.Equal("5448fee04bdc2dbc018b4567", icon.Item.Id);
@@ -38,7 +38,7 @@ namespace RatEyeTest
 			var scale = Config.Processing.Resolution2Scale(2560, 1440);
 			var ratEye = GetRatEyeEngine(scale);
 
-			var image = new Bitmap("TestData/QHD_Container.png");
+			var image = new Bitmap("TestData/QHD/Container.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(640, 840));
 			Assert.Equal("Wrench", icon.Item.Name);
@@ -54,7 +54,7 @@ namespace RatEyeTest
 			var scale = Config.Processing.Resolution2Scale(1920, 1080);
 			var ratEye = GetRatEyeEngine(scale);
 
-			var image = new Bitmap("TestData/FHD_InventoryHighlighted3H.png");
+			var image = new Bitmap("TestData/FHD/InventoryHighlighted3H.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon();
 		}

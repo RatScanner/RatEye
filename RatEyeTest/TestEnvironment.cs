@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Drawing;
+using System.IO;
 using RatEye;
 
 namespace RatEyeTest
@@ -20,9 +21,29 @@ namespace RatEyeTest
 			}
 		}
 
-		public RatEyeEngine GetDefaultRatEyeEngine()
+		public RatEyeEngine GetDefaultRatEyeEngine(bool optimizeHighlighted = false)
 		{
-			var config = new Config();
+			var config = new Config()
+			{
+				PathConfig = new Config.Path()
+				{
+					StaticIcons = "Data/StaticIcons",
+					StaticCorrelationData = "Data/StaticIcons/correlation.json",
+				},
+				ProcessingConfig = new Config.Processing()
+				{
+					IconConfig = new Config.Processing.Icon()
+					{
+						UseStaticIcons = true,
+						UseDynamicIcons = false,
+					},
+					InventoryConfig = new Config.Processing.Inventory()
+					{
+						OptimizeHighlighted = optimizeHighlighted,
+						MaxGridColor = optimizeHighlighted ? Color.FromArgb(89, 89, 89) : Color.FromArgb(112, 117, 108),
+					}
+				},
+			};
 			return new RatEyeEngine(config);
 		}
 

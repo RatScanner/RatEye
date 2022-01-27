@@ -233,12 +233,12 @@ namespace RatEye.Processing
 		/// Converts the pixel unit of the icon into the slot unit
 		/// </summary>
 		/// <returns>Slot size of the icon</returns>
-		internal Vector2 PixelsToSlots()
+		private Vector2 PixelsToSlots()
 		{
 			// Use converter class to round to nearest int instead of always rounding down
 			var x = (Size.X - 1) / ProcessingConfig.ScaledSlotSize;
 			var y = (Size.Y - 1) / ProcessingConfig.ScaledSlotSize;
-			return new Vector2(Convert.ToInt32(x), Convert.ToInt32(y));
+			return new Vector2((int)x, (int)y);
 		}
 	}
 }

@@ -71,21 +71,36 @@ namespace RatEye
 		/// <param name="y">Vertical position of the lower left corner</param>
 		/// <param name="width">Width of the output image</param>
 		/// <param name="height">Height of the output image</param>
+		/// <param name="ignoreBounds">Ignore if the given parameters go out of the image bounds and crop anyways</param>
 		/// <returns>The cropped input image</returns>
 		/// <exception cref="ArgumentException">x, y, width and height accept non negative values only</exception>
 		/// <exception cref="ArgumentOutOfRangeException">The input image is not big enough for the desired crop</exception>
-		public static Bitmap Crop(this Bitmap image, int x, int y, int width, int height)
+		public static Bitmap Crop(this Bitmap image, int x, int y, int width, int height, bool ignoreBounds = true)
 		{
-			if (x < 0 || y < 0 || width < 0 || height < 0)
+			if (ignoreBounds)
 			{
-				const string message = "x, y, width and height accept non negative values only.";
-				throw new ArgumentException(message);
-			}
+				if (x < 0) width -= -x;
+				if (y < 0) height -= -y;
 
-			if (x + width > image.Width || y + height > image.Height)
+				x = Math.Max(0, x);
+				y = Math.Max(0, y);
+
+				width = Math.Min(x + width, image.Width) - x;
+				height = Math.Min(y + height, image.Height) - y;
+			}
+			else
 			{
-				const string message = "The input image is not big enough for the desired crop";
-				throw new ArgumentOutOfRangeException(nameof(image), message);
+				if (x < 0 || y < 0 || width < 0 || height < 0)
+				{
+					const string message = "x, y, width and height accept non negative values only.";
+					throw new ArgumentException(message);
+				}
+
+				if (x + width > image.Width || y + height > image.Height)
+				{
+					const string message = "The input image is not big enough for the desired crop";
+					throw new ArgumentOutOfRangeException(nameof(image), message);
+				}
 			}
 
 			var rect = new Rectangle(x, y, width, height);

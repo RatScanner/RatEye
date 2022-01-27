@@ -146,6 +146,13 @@ namespace RatEye.Processing
 			return grid;
 		}
 
+		/// <summary>
+		/// Scan along multiple spaced apart rows of the processed input image
+		/// If the pixel under the scan position is white, check if there is
+		/// a valid icon at that position and add it as done by the
+		/// <see cref="TryAddIcon"/> method.
+		/// At last, remove detected icons which are overlapping.
+		/// </summary>
 		private void ParseInventoryGrid()
 		{
 			_icons = new List<Icon>();
@@ -165,6 +172,37 @@ namespace RatEye.Processing
 					if (!vertGrindIndexer[y, x].Equals(0xFF)) continue;
 
 					TryAddIcon(gridIndexer, x, y);
+				}
+			}
+
+			// Quarter of the normal sized slot
+			var overlapThreshold = scaledSlotSize / 2;
+
+			for (var i = _icons.Count - 1; i >= 0; i--)
+			{
+				var iconA = _icons[i];
+				var iconARect = new Rect(iconA.Position, iconA.Size);
+				
+				for (var j = _icons.Count - 1; j >= 0; j--)
+				{
+					// Skip if comparing to itself
+					if(i == j) continue;
+
+					var iconB = _icons[j];
+
+					// Only remove icon A from the list if it is bigger then the compare to icon
+					if(iconA.Size.Area < iconB.Size.Area) continue;
+
+					var iconBRect = new Rect(iconB.Position, iconB.Size);
+
+					var overlapRect = iconARect.Intersect(iconBRect);
+
+					// Remove icon A from the icons and continue to the next one
+					if (overlapRect.Width > overlapThreshold && overlapRect.Height > overlapThreshold)
+					{
+						_icons.RemoveAt(i);
+						break;
+					}
 				}
 			}
 		}
@@ -266,6 +304,12 @@ namespace RatEye.Processing
 				if (size == new Vector2(2, 2)) return false;
 				if (_icons.Any(i => i.Position == topLeft)) return false;
 
+				// Expand the rect by a small bit to make sure the icon is included
+				var scaledSlotSize = (int)_config.ProcessingConfig.ScaledSlotSize;
+				var scaledSlotSizeVec = new Vector2(scaledSlotSize, scaledSlotSize);
+				topLeft -= scaledSlotSizeVec / 8;
+				size += scaledSlotSizeVec / 4;
+				
 				var icon = _image.ToBitmap().Crop(topLeft.X, topLeft.Y, size.X, size.Y);
 				_icons.Add(new Icon(icon, topLeft, size, _config));
 				return true;
