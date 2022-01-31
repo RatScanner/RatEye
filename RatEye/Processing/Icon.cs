@@ -38,9 +38,18 @@ namespace RatEye.Processing
 		public Vector2 Size { get; }
 
 		/// <summary>
-		/// Size of the icon, measured in slots
+		/// Size of the item, measured in pixels
 		/// </summary>
-		public Vector2 SlotSize => PixelsToSlots();
+		public Vector2 ItemSize
+		{
+			get
+			{
+				var size = IconSlotSize();
+				size.X = (int)(size.X * ProcessingConfig.ScaledSlotSize);
+				size.Y = (int)(size.Y * ProcessingConfig.ScaledSlotSize);
+				return size;
+			}
+		}
 
 		/// <summary>
 		/// The detected item
@@ -172,7 +181,8 @@ namespace RatEye.Processing
 			}
 
 			var iconManager = _config.IconManager;
-			var slotSize = rotated ? new Vector2(SlotSize.Y, SlotSize.X) : SlotSize;
+			var iconSlotSize = IconSlotSize();
+			var slotSize = rotated ? new Vector2(iconSlotSize.Y, iconSlotSize.X) : iconSlotSize;
 			if (IconConfig.UseStaticIcons)
 			{
 				if (iconManager.StaticIcons.ContainsKey(slotSize))
@@ -233,7 +243,7 @@ namespace RatEye.Processing
 		/// Converts the pixel unit of the icon into the slot unit
 		/// </summary>
 		/// <returns>Slot size of the icon</returns>
-		private Vector2 PixelsToSlots()
+		private Vector2 IconSlotSize()
 		{
 			// Use converter class to round to nearest int instead of always rounding down
 			var x = (Size.X - 1) / ProcessingConfig.ScaledSlotSize;

@@ -12,8 +12,8 @@ namespace RatEyeTest
 		{
 			var image = new Bitmap("TestData/FHD/Inventory2.png");
 			var inventory = GetDefaultRatEyeEngine().NewInventory(image);
-			var icon = inventory.LocateIcon(new Vector2(1100, 650));
-			Assert.Equal(new Vector2(4, 2), icon.SlotSize);
+			var icon = inventory.LocateIcon(new Vector2(1200, 700));
+			Assert.Equal((2, 2), icon.Item.GetSlotSize());
 		}
 
 		[Fact]
@@ -22,7 +22,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/Inventory2Centered.png");
 			var inventory = GetDefaultRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon();
-			Assert.Equal(new Vector2(2, 2), icon.SlotSize);
+			Assert.Equal((2, 2), icon.Item.GetSlotSize());
 		}
 
 		[Fact]
@@ -42,7 +42,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/Grid1.png");
 			var inventory = GetDefaultRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(260, 130));
-			Assert.Equal(new Vector2(1, 1), icon.SlotSize);
+			Assert.Equal((1, 1), icon.Item.GetSlotSize());
 			Assert.Equal("Propital", icon.Item.ShortName);
 		}
 
@@ -52,7 +52,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/Grid1.png");
 			var inventory = GetDefaultRatEyeEngine(true).NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(130, 130));
-			Assert.Equal(new Vector2(1, 1), icon.SlotSize);
+			Assert.Equal((1, 1), icon.Item.GetSlotSize());
 			Assert.Equal("Morphine", icon.Item.ShortName);
 		}
 
@@ -62,7 +62,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/Grid2.png");
 			var inventory = GetDefaultRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(200, 200));
-			Assert.Equal(new Vector2(1, 1), icon.SlotSize);
+			Assert.Equal((1, 1), icon.Item.GetSlotSize());
 			Assert.NotNull(icon.Item);
 		}
 
@@ -72,7 +72,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/GridHighlighted2.png");
 			var inventory = GetDefaultRatEyeEngine(true).NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(200, 200));
-			Assert.Equal(new Vector2(1, 1), icon.SlotSize);
+			Assert.Equal((1, 1), icon.Item.GetSlotSize());
 			Assert.NotNull(icon.Item);
 		}
 
@@ -82,7 +82,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/Grid3.png");
 			var inventory = GetDefaultRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(50, 100));
-			Assert.Equal(new Vector2(1, 2), icon.SlotSize);
+			Assert.Equal((1, 2), icon.Item.GetSlotSize());
 			Assert.Equal("Water", icon.Item.ShortName);
 		}
 
@@ -92,7 +92,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/GridHighlighted3.png");
 			var inventory = GetDefaultRatEyeEngine(true).NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(50, 100));
-			Assert.Equal(new Vector2(1, 2), icon.SlotSize);
+			Assert.Equal((1, 2), icon.Item.GetSlotSize());
 			Assert.Equal("Water", icon.Item.ShortName);
 		}
 	}
