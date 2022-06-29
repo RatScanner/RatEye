@@ -5,7 +5,7 @@
 		<LangVersion>9</LangVersion>
 		<Company>RatScanner</Company>
 		<Authors>Blightbuster</Authors>
-		<Version>2.2.0</Version>
+		<Version>2.3.0</Version>
 		<Description>Image processing library for Escape from Tarkov</Description>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageProjectUrl>https://ratscanner.com/</PackageProjectUrl>
