@@ -36,6 +36,11 @@ namespace RatEye
 			Config.IconManager = new IconManager(config);
 		}
 
+		public MultiInspection NewMultiInspection(Bitmap image)
+		{
+			return new MultiInspection(image, Config);
+		}
+
 		public Inspection NewInspection(Bitmap image)
 		{
 			return new Inspection(image, Config);
