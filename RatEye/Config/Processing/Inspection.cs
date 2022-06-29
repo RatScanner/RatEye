@@ -25,19 +25,9 @@ namespace RatEye
 				public float MarkerThreshold = 0.93f;
 
 				/// <summary>
-				/// If true, allows to process the inspection window of containers
-				/// </summary>
-				public bool EnableContainers = false;
-
-				/// <summary>
 				/// The scale of the marker used by item inspection windows
 				/// </summary>
 				public float MarkerItemScale = 17f / 19f;
-
-				/// <summary>
-				/// The scale of the marker used by container inspection windows
-				/// </summary>
-				public float MarkerContainerScale = 1f;
 
 				/// <summary>
 				/// The background color used for the marker if it uses a alpha channel

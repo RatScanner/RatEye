@@ -19,39 +19,10 @@ namespace RatEye.Processing
 		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
 		private Config.Processing.Inspection InspectionConfig => ProcessingConfig.InspectionConfig;
 
-		/// <summary>
-		/// Inspection window variants
-		/// </summary>
-		public enum InspectionType
-		{
-			/// <summary>Unknown inspection type</summary>
-			Unknown,
-
-			/// <summary>When double clicking a item or clicking the inspect tooltip</summary>
-			Item,
-
-			/// <summary>When opening a container like a Keytool or a Scavbox</summary>
-			Container,
-		}
-
 		// Backing property fields
-		private InspectionType _detectedInspectionType = InspectionType.Unknown;
 		private Vector2 _markerPosition;
 		private float _markerConfidence;
 		private string _title = "";
-
-		/// <summary>
-		/// Detected type of the inspection window
-		/// </summary>
-		public InspectionType DetectedInspectionType
-		{
-			get
-			{
-				SatisfyState(State.SearchedMarker);
-				return _detectedInspectionType;
-			}
-			private set => _detectedInspectionType = value;
-		}
 
 		/// <summary>
 		/// Position of the marker in the given image
@@ -120,12 +91,29 @@ namespace RatEye.Processing
 		/// Constructor for inspection view processing object
 		/// </summary>
 		/// <param name="image">Image of the inspection view which will be processed</param>
-		/// <param name="config">The config to use for this instance></param>
+		/// <param name="config">The config to use for this instance</param>
 		/// <remarks>Provided image has to be in RGB</remarks>
 		internal Inspection(Bitmap image, Config config)
 		{
 			_config = config;
 			_image = image;
+		}
+
+		/// <summary>
+		/// Constructor for inspection view processing object
+		/// </summary>
+		/// <param name="image">Image of the inspection view which will be processed</param>
+		/// <param name="config">The config to use for this instance</param>
+		/// <param name="markerPosition">Position of the marker in the given image</param>
+		/// <param name="markerConfidence">Confidence of the marker in the given image</param>
+		/// <remarks>Provided image has to be in RGB</remarks>
+		internal Inspection(Bitmap image, Config config, Vector2 markerPosition, float markerConfidence)
+		{
+			_config = config;
+			_image = image;
+			_currentState = State.SearchedMarker;
+			_markerPosition = markerPosition;
+			_markerConfidence = markerConfidence;
 		}
 
 		#region Processing state handling
@@ -164,32 +152,15 @@ namespace RatEye.Processing
 		#endregion
 
 		/// <summary>
-		/// Search for all different marker types and pick the best matching one
+		/// Search for markers and pick the best matching one
 		/// </summary>
 		private void SearchMarker()
 		{
 			SatisfyState(State.Default);
 
-			var item = GetMarkerPosition(GetScaledMarker(InspectionType.Item));
-
-			(float confidence, Vector2 position) container = (-1f, Vector2.Zero);
-			if (_config.ProcessingConfig.InspectionConfig.EnableContainers)
-			{
-				container = GetMarkerPosition(GetScaledMarker(InspectionType.Container));
-			}
-
-			if (item.confidence >= container.confidence)
-			{
-				DetectedInspectionType = InspectionType.Item;
-				MarkerConfidence = item.confidence;
-				MarkerPosition = item.position;
-			}
-			else
-			{
-				DetectedInspectionType = InspectionType.Container;
-				MarkerConfidence = container.confidence;
-				MarkerPosition = container.position;
-			}
+			var marker = GetMarkerPosition(GetScaledMarker());
+			MarkerConfidence = marker.confidence;
+			MarkerPosition = marker.position;
 		}
 
 		/// <summary>
@@ -226,10 +197,10 @@ namespace RatEye.Processing
 
 			// Compute title search box dimensions
 			var position = MarkerPosition;
-			position.X += GetHorizontalTitleSearchOffset(DetectedInspectionType);
+			position.X += GetHorizontalTitleSearchOffset();
 
 			// Find end of the title bar
-			var scaledMarker = GetScaledMarker(DetectedInspectionType);
+			var scaledMarker = GetScaledMarker();
 			var closeBtnCenterHeight = MarkerPosition.Y + (scaledMarker.Height / 2);
 			var lowC = InspectionConfig.CloseButtonColorLowerBound;
 			var upC = InspectionConfig.CloseButtonColorUpperBound;
@@ -333,22 +304,13 @@ namespace RatEye.Processing
 		}
 
 		/// <summary>
-		/// Generate a marker bitmap based on the inspection type
+		/// Generate a marker bitmap
 		/// </summary>
-		/// <param name="inspectionType">The inspection type, determining the final marker scale</param>
 		/// <remarks><see cref="Config.Processing.Scale"/> is already accounted for.</remarks>
 		/// <returns>A rescaled and alpha blended version of <see cref="Config.Processing.Inspection.Marker"/></returns>
-		private Bitmap GetScaledMarker(InspectionType inspectionType)
+		private Bitmap GetScaledMarker()
 		{
-			var markerScale = inspectionType switch
-			{
-				InspectionType.Item => InspectionConfig.MarkerItemScale,
-				InspectionType.Container => InspectionConfig.MarkerContainerScale,
-				InspectionType.Unknown => throw new InvalidOperationException(),
-				_ => throw new ArgumentOutOfRangeException(nameof(inspectionType), inspectionType, null)
-			};
-
-			var output = InspectionConfig.Marker.Rescale(markerScale * ProcessingConfig.Scale);
+			var output = InspectionConfig.Marker.Rescale(InspectionConfig.MarkerItemScale * ProcessingConfig.Scale);
 			return output.TransparentToColor(InspectionConfig.MarkerBackgroundColor);
 		}
 
@@ -356,11 +318,10 @@ namespace RatEye.Processing
 		/// Scaled horizontal offset of the inspection window title search box
 		/// <para>See <see cref="Config.Processing.Inspection.HorizontalTitleSearchOffsetFactor"/>.</para>
 		/// </summary>
-		/// <param name="inspectionType"></param>
 		/// <returns>The distance between the right edge of the marker and the beginning of the title search box</returns>
-		private int GetHorizontalTitleSearchOffset(InspectionType inspectionType)
+		private int GetHorizontalTitleSearchOffset()
 		{
-			var width = GetScaledMarker(inspectionType).Width;
+			var width = GetScaledMarker().Width;
 			return (int)(width * InspectionConfig.HorizontalTitleSearchOffsetFactor);
 		}
 
@@ -371,23 +332,12 @@ namespace RatEye.Processing
 		private Item GetItem()
 		{
 			var items = _config.RatStashDB.GetItems();
-			return DetectedInspectionType switch
+			return items.Aggregate((i1, i2) =>
 			{
-				InspectionType.Item => items.Aggregate((i1, i2) =>
-				{
-					var i1Dist = i1.Name.CyrillicToLatin().NormedLevenshteinDistance(Title);
-					var i2Dist = i2.Name.CyrillicToLatin().NormedLevenshteinDistance(Title);
-					return i1Dist > i2Dist ? i1 : i2;
-				}),
-				InspectionType.Container => items.Aggregate((i1, i2) =>
-				{
-					var i1Dist = i1.ShortName.CyrillicToLatin().NormedLevenshteinDistance(Title);
-					var i2Dist = i2.ShortName.CyrillicToLatin().NormedLevenshteinDistance(Title);
-					return i1Dist > i2Dist ? i1 : i2;
-				}),
-				InspectionType.Unknown => null,
-				_ => throw new ArgumentOutOfRangeException()
-			};
+				var i1Dist = i1.Name.CyrillicToLatin().NormedLevenshteinDistance(Title);
+				var i2Dist = i2.Name.CyrillicToLatin().NormedLevenshteinDistance(Title);
+				return i1Dist > i2Dist ? i1 : i2;
+			});
 		}
 	}
 }
