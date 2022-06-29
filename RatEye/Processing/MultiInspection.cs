@@ -102,9 +102,11 @@ namespace RatEye.Processing
 			using var gtpl = tplMat.CvtColor(ColorConversionCodes.RGB2GRAY);
 
 			Cv2.MatchTemplate(gref, gtpl, res, TemplateMatchModes.CCoeffNormed);
-			Cv2.Threshold(res, res, InspectionConfig.MarkerThreshold, 1.0, ThresholdTypes.Binary);
-			res.FindNonZero().GetArray(out Point[] points);
+			Cv2.Threshold(res, res, InspectionConfig.MarkerThreshold, 1, ThresholdTypes.Binary);
+			var nonZeroes = res.FindNonZero();
+			if (nonZeroes.Empty()) return new List<Vector2>();
 
+			nonZeroes.GetArray(out Point[] points);
 			return points.Select(point => new Vector2(point)).ToList();
 		}
 

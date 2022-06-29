@@ -22,6 +22,15 @@ namespace RatEyeTest
 			}
 		}
 
+		[Fact]
+		public void EmptyMultiInspectionsFHD()
+		{
+			var image = new Bitmap("TestData/FHD/InventoryH.png");
+			var ratEye = GetRatEyeEngine(1.0f, Language.English, "fast");
+			var multiInspection = ratEye.NewMultiInspection(image);
+			Assert.Empty(multiInspection.Inspections);
+		}
+
 		private static RatEyeEngine GetRatEyeEngine(float scale, Language language, string modelType)
 		{
 			var config = new Config()
