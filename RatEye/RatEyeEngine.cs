@@ -17,21 +17,13 @@ namespace RatEye
 		/// Create a <see cref="RatEyeEngine"/> instance which is the basis of all processing
 		/// </summary>
 		/// <param name="config">The config to use for this instance</param>
+		/// <param name="itemDatabase">The <see cref="RatStash.Database"/> which contains all matchable items. For example, if no quest items should be matched, pass a previously filtered <see cref="RatStash.Database"/>.</param>
 		/// <remarks>Do not modify the config after passing it</remarks>
-		public RatEyeEngine(Config config)
+		public RatEyeEngine(Config config, RatStash.Database itemDatabase)
 		{
 			Config = config;
-			var processingCfg = Config.ProcessingConfig;
-			var inspectionCfg = processingCfg.InspectionConfig;
-			var inventoryCfg = processingCfg.InventoryConfig;
-			var iconCfg = processingCfg.IconConfig;
-
-			// Setup RatStash database
-			var itemData = Config.PathConfig.ItemData;
-			var locales = Config.PathConfig.ItemLocales;
-			var langCode = Config.ProcessingConfig.Language.ToBSGCode();
-			var locale = System.IO.Path.Combine(locales, $"{langCode}.json");
-			config.RatStashDB = RatStash.Database.FromFile(itemData, true, locale);
+			
+			config.RatStashDB = itemDatabase;
 
 			Config.IconManager = new IconManager(config);
 		}

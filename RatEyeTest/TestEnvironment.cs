@@ -1,6 +1,7 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System.IO;
 using RatEye;
+using RatStash;
+using Color = System.Drawing.Color;
 
 namespace RatEyeTest
 {
@@ -44,7 +45,14 @@ namespace RatEyeTest
 					}
 				},
 			};
-			return new RatEyeEngine(config);
+			
+			return new RatEyeEngine(config, GetItemDatabase());
+		}
+
+		public static RatStash.Database GetItemDatabase(RatStash.Language language = Language.English, bool filtered = true)
+		{
+			var localePath = $"Data/locales/{language.ToBSGCode()}.json";
+			return RatStash.Database.FromFile("Data/items.json", filtered, localePath);
 		}
 
 		/// <summary>

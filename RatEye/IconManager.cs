@@ -358,6 +358,10 @@ namespace RatEye
 				var iconPath = correlation.GetValue("icon")?.ToString();
 				var uid = correlation.GetValue("uid")?.ToString();
 
+				// Filter out items which are not in the item database
+				if (_config.RatStashDB.GetItem(uid) == null) continue;
+
+				// Add the item to the correlation data
 				var iconKey = GetIconKey(iconPath, IconType.Static);
 				correlationData[iconKey] = _config.RatStashDB.GetItem(uid);
 			}

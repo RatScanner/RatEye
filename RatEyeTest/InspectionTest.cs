@@ -101,7 +101,7 @@ namespace RatEyeTest
 					}
 				}
 			};
-			return new RatEyeEngine(config);
+			return new RatEyeEngine(config, GetItemDatabase(language));
 		}
 	}
 }

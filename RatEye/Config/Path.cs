@@ -65,22 +65,6 @@ namespace RatEye
 			public string TrainedData = Combine(DataDir, "traineddata");
 
 			/// <summary>
-			/// Path to the file, which will be used to create the <see cref="RatStash.Database"/> instance
-			/// </summary>
-			/// <remarks>
-			/// For more details on <see cref="RatStash"/>, see <see href="https://github.com/RatScanner/RatStash"/>
-			/// </remarks>
-			public string ItemData = Combine(DataDir, "items.json");
-
-			/// <summary>
-			/// Path the folder, which contains localization files used to create the <see cref="RatStash.Database"/> instance
-			/// </summary>
-			/// <remarks>
-			/// For more details on <see cref="RatStash"/>, see <see href="https://github.com/RatScanner/RatStash"/>
-			/// </remarks>
-			public string ItemLocales = Combine(DataDir, "locales");
-
-			/// <summary>
 			/// Path at which tesseract searches for dependencies
 			/// </summary>
 			public static string TesseractLibSearchPath

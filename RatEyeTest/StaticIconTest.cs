@@ -57,9 +57,25 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/InventoryHighlighted3H.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon();
+			Assert.NotNull(icon.Item);
 		}
 
-		private RatEyeEngine GetRatEyeEngine(float scale = 1f)
+		[Fact]
+		public void FilteredDatabaseTest()
+		{
+			var itemDatabase = GetItemDatabase();
+			itemDatabase = itemDatabase.Filter(item => item.Id != "5645bcc04bdc2d363b8b4572");
+
+			var scale = Config.Processing.Resolution2Scale(1920, 1080);
+			var ratEye = GetRatEyeEngine(scale, itemDatabase);
+
+			var image = new Bitmap("TestData/FHD/Inventory2.png");
+			var inventory = ratEye.NewInventory(image);
+			var icon = inventory.LocateIcon(new Vector2(735, 310));
+			Assert.NotEqual("5645bcc04bdc2d363b8b4572", icon.Item.Id);
+		}
+
+		private RatEyeEngine GetRatEyeEngine(float scale = 1f, RatStash.Database itemDatabase = null)
 		{
 			var config = new Config()
 			{
@@ -77,7 +93,7 @@ namespace RatEyeTest
 					},
 				},
 			};
-			return new RatEyeEngine(config);
+			return new RatEyeEngine(config, itemDatabase ?? GetItemDatabase());
 		}
 	}
 }

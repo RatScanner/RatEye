@@ -28,7 +28,7 @@ namespace RatEyeTest
 					},
 				},
 			};
-			var ratEye = new RatEyeEngine(config);
+			var ratEye = new RatEyeEngine(config, GetItemDatabase());
 
 			var image = new Bitmap("TestData/FHD/Inventory2.png");
 			var inventory = ratEye.NewInventory(image);
@@ -65,7 +65,7 @@ namespace RatEyeTest
 					},
 				},
 			};
-			var ratEye = new RatEyeEngine(config);
+			var ratEye = new RatEyeEngine(config, GetItemDatabase());
 
 			var image = new Bitmap("TestData/FHD/InventoryHighlighted2.png");
 			var inventory = ratEye.NewInventory(image);
