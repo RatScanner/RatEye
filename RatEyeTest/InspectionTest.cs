@@ -17,6 +17,14 @@ namespace RatEyeTest
 		}
 
 		[Fact]
+		public void ItemFHD2()
+		{
+			var image = new Bitmap("TestData/FHD/Inspection.png");
+			var title = "Can of beef stew (Large)";
+			ConductTest(1f, image, 25, 24, title, "57347da92459774491567cf5");
+		}
+
+		[Fact]
 		public void ItemFHDRussian()
 		{
 			var image = new Bitmap("TestData/FHD/Item_Russian.png");

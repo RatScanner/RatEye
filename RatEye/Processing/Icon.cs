@@ -33,8 +33,11 @@ namespace RatEye.Processing
 		public Vector2 Position { get; }
 
 		/// <summary>
-		/// Size of the icon, measured in pixel
+		/// Size of the icon image, measured in pixel
 		/// </summary>
+		/// <remarks>
+		/// This might not be the exact size of the item and does not account for rotation
+		/// </remarks>
 		public Vector2 Size { get; }
 
 		/// <summary>
@@ -156,9 +159,9 @@ namespace RatEye.Processing
 			}
 		}
 
-
 		private void RescaleIcon()
 		{
+			Logger.LogDebugBitmap(_icon, nameof(_icon));
 			_scaledIcon = _icon.Rescale(ProcessingConfig.InverseScale);
 		}
 
@@ -166,8 +169,11 @@ namespace RatEye.Processing
 		{
 			SatisfyState(State.Rescaled);
 
+			// NOTE The source image is scaled hence all outgoing pixel values need to be adjusted accordingly
 			using var source = _scaledIcon.ToMat();
 			if (rotated) Cv2.Rotate(source, source, RotateFlags.Rotate90Counterclockwise);
+
+			Logger.LogDebugMat(source, nameof(source));
 
 			(string match, float confidence, Vector2 pos) staticResult = default;
 			(string match, float confidence, Vector2 pos) dynamicResult = default;
@@ -208,7 +214,7 @@ namespace RatEye.Processing
 			if (!(result.confidence > _detectionConfidence)) return;
 
 			_rotated = rotated;
-			_itemPosition = result.pos;
+			_itemPosition = result.pos * _config.ProcessingConfig.Scale;
 			_detectionConfidence = result.confidence;
 			_item = _config.IconManager.GetItem(result.match);
 			_itemExtraInfo = _config.IconManager.GetItemExtraInfo(result.match);
@@ -233,6 +239,7 @@ namespace RatEye.Processing
 					bestMatch = icon.Key;
 					position = new Vector2(minLoc);
 					Logger.LogDebugMat(icon.Value, $"conf-{confidence}.png");
+					Logger.LogDebugMat(matches, $"match-conf-{confidence}.png");
 				}
 			});
 

@@ -28,8 +28,8 @@ namespace RatEyeTest
 			{
 				PathConfig = new Config.Path()
 				{
-					StaticIcons = "Data/StaticIcons",
-					StaticCorrelationData = "Data/StaticIcons/correlation.json",
+					StaticIcons = "Data/Icons",
+					StaticCorrelationData = "Data/Icons/correlation.json",
 				},
 				ProcessingConfig = new Config.Processing()
 				{
@@ -52,7 +52,10 @@ namespace RatEyeTest
 		public static RatStash.Database GetItemDatabase(RatStash.Language language = Language.English, bool filtered = true)
 		{
 			var localePath = $"Data/locales/{language.ToBSGCode()}.json";
-			return RatStash.Database.FromFile("Data/items.json", filtered, localePath);
+			var itemDatabase =  RatStash.Database.FromFile("Data/items.json", filtered, localePath);
+			return itemDatabase.Filter(item => !item.QuestItem
+												&& item.GetType() != typeof(LootContainer)
+												&& item.GetType() != typeof(Pockets));
 		}
 
 		/// <summary>

@@ -15,7 +15,7 @@ namespace RatEyeTest
 			var icon = inventory.LocateIcon(new Vector2(735, 310));
 			Assert.Equal("Peltor ComTac 2 headset", icon.Item.Name);
 			Assert.Equal("5645bcc04bdc2d363b8b4572", icon.Item.Id);
-			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_equipment_headset_comtacii.png");
+			var expectedPath = Path.GetFullPath("Data/Icons/5645bcc04bdc2d363b8b4572.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.False(icon.Rotated);
 		}
@@ -27,7 +27,7 @@ namespace RatEyeTest
 			var inventory = GetRatEyeEngine().NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(1080, 580));
 			Assert.Equal("5448fee04bdc2dbc018b4567", icon.Item.Id);
-			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_water_bottle_loot.png");
+			var expectedPath = Path.GetFullPath("Data/Icons/5448fee04bdc2dbc018b4567.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.True(icon.Rotated);
 		}
@@ -41,9 +41,10 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/QHD/Container.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(640, 840));
+			Assert.Equal(new Vector2(9, 8), icon.ItemPosition);
 			Assert.Equal("Wrench", icon.Item.Name);
 			Assert.Equal("590c311186f77424d1667482", icon.Item.Id);
-			var expectedPath = Path.GetFullPath("Data/StaticIcons/item_tools_wrench.png");
+			var expectedPath = Path.GetFullPath("Data/Icons/590c311186f77424d1667482.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
 			Assert.False(icon.Rotated);
 		}
@@ -81,11 +82,13 @@ namespace RatEyeTest
 			{
 				PathConfig = new Config.Path()
 				{
-					StaticIcons = "Data/StaticIcons",
-					StaticCorrelationData = "Data/StaticIcons/correlation.json",
+					StaticIcons = "Data/Icons",
+					StaticCorrelationData = "Data/Icons/correlation.json",
+					TrainedData = "Data/traineddata/best",
 				},
 				ProcessingConfig = new Config.Processing()
 				{
+					Scale = scale,
 					IconConfig = new Config.Processing.Icon()
 					{
 						UseStaticIcons = true,
