@@ -33,7 +33,7 @@ namespace RatEyeTest
 			var image = new Bitmap("TestData/FHD/Inventory2.png");
 			var inventory = ratEye.NewInventory(image);
 			var icon = inventory.LocateIcon(new Vector2(960, 525));
-			Assert.Equal("OKP-7 reflex sight (dovetail)", icon.Item.Name);
+			Assert.Equal("OKP-7 reflex sight (Dovetail)", icon.Item.Name);
 			Assert.Equal("57486e672459770abd687134", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/DynamicIcons/24.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
