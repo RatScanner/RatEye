@@ -25,24 +25,27 @@ namespace RatEye
 				/// <summary>
 				/// Minimum color for thresholding the grid
 				/// </summary>
-				public Color MinGridColor = Color.FromArgb(73, 81, 84);
+				public (int hue, int saturation, int value) MinGridColor = (100, 15, 63);
 
 				/// <summary>
 				/// Maximum color for thresholding the grid
 				/// </summary>
 				/// <remarks>
-				/// Recommended <c>Color.FromArgb(89, 89, 89)</c> when processing
-				/// highlighted items, else <c>Color.FromArgb(112, 117, 108)</c>.
-				/// This is not getting set by <see cref="OptimizeHighlighted"/>.
-				/// </remarks>
-				public Color MaxGridColor = Color.FromArgb(104, 112, 112);
+				public (int hue, int saturation, int value) MaxGridColor = (146, 46, 96);
+
+				/// <summary>
+				/// Minimum color for thresholding the highlighting background of an item
+				/// </summary>
+				public (int hue, int saturation, int value) MinHighlightingColor = (0, 0, 80);
+
+				/// <summary>
+				/// Maximum color for thresholding the highlighting background of an item
+				/// </summary>
+				public (int hue, int saturation, int value) MaxHighlightingColor = (255, 3, 100);
 
 				/// <summary>
 				/// If <see langword="true"/>, all processing will be optimized for highlighted items
 				/// </summary>
-				/// <remarks>
-				/// Consider also setting <see cref="MaxGridColor"/> to a appropriate value.
-				/// </remarks>
 				public bool OptimizeHighlighted = false;
 
 				/// <summary>

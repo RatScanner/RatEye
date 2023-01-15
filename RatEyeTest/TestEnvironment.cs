@@ -41,7 +41,6 @@ namespace RatEyeTest
 					InventoryConfig = new Config.Processing.Inventory()
 					{
 						OptimizeHighlighted = optimizeHighlighted,
-						MaxGridColor = optimizeHighlighted ? Color.FromArgb(89, 89, 89) : Color.FromArgb(112, 117, 108),
 					}
 				},
 			};

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -72,11 +73,34 @@ namespace RatEye.Processing
 
 		private void DetectInventoryGrid()
 		{
+			if (_config.ProcessingConfig.InventoryConfig.OptimizeHighlighted) DetectInventoryGridHighlighted();
+			else DetectInventoryGridNormal();
+		}
+
+		private void DetectInventoryGridHighlighted()
+		{
+			var minBackgroundColor = _config.ProcessingConfig.InventoryConfig.MinHighlightingColor;
+			var maxBackgroundColor = _config.ProcessingConfig.InventoryConfig.MaxHighlightingColor;
+			var minBackgroundScalar = new Scalar(minBackgroundColor.hue, minBackgroundColor.saturation, minBackgroundColor.value);
+			var maxBackgroundScalar = new Scalar(maxBackgroundColor.hue, maxBackgroundColor.saturation, maxBackgroundColor.value);
+			using var hsv = _image.CvtColor(ColorConversionCodes.BGR2HSV_FULL);
+			var colorFilter = hsv.InRange(minBackgroundScalar, maxBackgroundScalar);
+			Logger.LogDebugMat(colorFilter, "colorFilter");
+
+			var scale = _config.ProcessingConfig.Scale;
+			Cv2.Dilate(colorFilter, colorFilter, Mat.Ones(3, 3), null, (int)(3 * scale));
+			_grid = colorFilter;
+		}
+
+		private void DetectInventoryGridNormal()
+		{
 			var minGridColor = _config.ProcessingConfig.InventoryConfig.MinGridColor;
 			var maxGridColor = _config.ProcessingConfig.InventoryConfig.MaxGridColor;
-			var minGridScalar = Scalar.FromRgb(minGridColor.R, minGridColor.G, minGridColor.B);
-			var maxGridScalar = Scalar.FromRgb(maxGridColor.R, maxGridColor.G, maxGridColor.B);
-			using var colorFilter = _image.InRange(minGridScalar, maxGridScalar);
+			var minGridScalar = new Scalar(minGridColor.hue, minGridColor.saturation, minGridColor.value);
+			var maxGridScalar = new Scalar(maxGridColor.hue, maxGridColor.saturation, maxGridColor.value);
+			using var hsv = _image.CvtColor(ColorConversionCodes.BGR2HSV_FULL);
+			using var colorFilter = hsv.InRange(minGridScalar, maxGridScalar);
+
 
 			Logger.LogDebugMat(colorFilter, "colorFilter");
 
@@ -98,6 +122,99 @@ namespace RatEye.Processing
 
 			_grid = grid;
 			_vertGrid = verticalLines;
+		}
+
+		private void ParseInventoryGrid()
+		{
+			if (_config.ProcessingConfig.InventoryConfig.OptimizeHighlighted) ParseInventoryGridHighlighted();
+			else ParseInventoryGridNormal();
+		}
+
+		private void ParseInventoryGridHighlighted()
+		{
+			var contours = _grid.FindContoursAsArray(RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+
+			var sortedContours = contours.OrderByDescending(contour => Cv2.ContourArea(contour)).ToArray();
+			if (sortedContours.Length > 0)
+			{
+				var rect = Cv2.BoundingRect(sortedContours[0]);
+				var scaledSlotSize = (int)_config.ProcessingConfig.ScaledSlotSize;
+				rect.X -= scaledSlotSize / 8;
+				rect.Y -= scaledSlotSize / 8;
+				rect.Width += scaledSlotSize / 4;
+				rect.Height += scaledSlotSize / 4;
+
+				if (Config.LogDebug)
+				{
+					using var debugMat = _image.Clone();
+					debugMat.Rectangle(rect, new(255, 128, 0));
+					Logger.LogDebugMat(debugMat, "icon");
+				}
+
+				var icon = _image.ToBitmap().Crop(rect.X, rect.Y, rect.Width, rect.Height);
+				_icons = new List<Icon> { new(icon, new(rect.X, rect.Y), new(rect.Width, rect.Height), _config) };
+			}
+		}
+
+		/// <summary>
+		/// Scan along multiple spaced apart rows of the processed input image
+		/// If the pixel under the scan position is white, check if there is
+		/// a valid icon at that position and add it as done by the
+		/// <see cref="TryAddIcon"/> method.
+		/// At last, remove detected icons which are overlapping.
+		/// </summary>
+		private void ParseInventoryGridNormal()
+		{
+			_icons = new List<Icon>();
+
+			var gridIndexer = _grid.GetGenericIndexer<byte>();
+			var vertGrindIndexer = _vertGrid.GetGenericIndexer<byte>();
+
+			var scaledSlotSize = (int)(_config.ProcessingConfig.ScaledSlotSize);
+
+			var maxRows = _vertGrid.Rows;
+			var maxCols = _vertGrid.Cols - scaledSlotSize / 2;
+
+			for (var y = scaledSlotSize / 2; y < maxRows; y += scaledSlotSize)
+			{
+				for (var x = 0; x < maxCols; x++)
+				{
+					if (!vertGrindIndexer[y, x].Equals(0xFF)) continue;
+
+					TryAddIcon(gridIndexer, x, y);
+				}
+			}
+
+			// Quarter of the normal sized slot
+			var overlapThreshold = scaledSlotSize / 2;
+
+			for (var i = _icons.Count - 1; i >= 0; i--)
+			{
+				var iconA = _icons[i];
+				var iconARect = new Rect(iconA.Position, iconA.Size);
+
+				for (var j = _icons.Count - 1; j >= 0; j--)
+				{
+					// Skip if comparing to itself
+					if (i == j) continue;
+
+					var iconB = _icons[j];
+
+					// Only remove icon A from the list if it is bigger then the compare to icon
+					if (iconA.Size.Area < iconB.Size.Area) continue;
+
+					var iconBRect = new Rect(iconB.Position, iconB.Size);
+
+					var overlapRect = iconARect.Intersect(iconBRect);
+
+					// Remove icon A from the icons and continue to the next one
+					if (overlapRect.Width > overlapThreshold && overlapRect.Height > overlapThreshold)
+					{
+						_icons.RemoveAt(i);
+						break;
+					}
+				}
+			}
 		}
 
 		private void SmoothJaggedLines(Mat mat, bool horizontal)
@@ -144,67 +261,6 @@ namespace RatEye.Processing
 			Cv2.BitwiseOr(vLinesWithHoles, hLinesWithHoles, grid);
 			Cv2.BitwiseOr(grid, holes, grid);
 			return grid;
-		}
-
-		/// <summary>
-		/// Scan along multiple spaced apart rows of the processed input image
-		/// If the pixel under the scan position is white, check if there is
-		/// a valid icon at that position and add it as done by the
-		/// <see cref="TryAddIcon"/> method.
-		/// At last, remove detected icons which are overlapping.
-		/// </summary>
-		private void ParseInventoryGrid()
-		{
-			_icons = new List<Icon>();
-
-			var gridIndexer = _grid.GetGenericIndexer<byte>();
-			var vertGrindIndexer = _vertGrid.GetGenericIndexer<byte>();
-
-			var scaledSlotSize = (int)(_config.ProcessingConfig.ScaledSlotSize);
-
-			var maxRows = _vertGrid.Rows;
-			var maxCols = _vertGrid.Cols - scaledSlotSize / 2;
-
-			for (var y = scaledSlotSize / 2; y < maxRows; y += scaledSlotSize)
-			{
-				for (var x = 0; x < maxCols; x++)
-				{
-					if (!vertGrindIndexer[y, x].Equals(0xFF)) continue;
-
-					TryAddIcon(gridIndexer, x, y);
-				}
-			}
-
-			// Quarter of the normal sized slot
-			var overlapThreshold = scaledSlotSize / 2;
-
-			for (var i = _icons.Count - 1; i >= 0; i--)
-			{
-				var iconA = _icons[i];
-				var iconARect = new Rect(iconA.Position, iconA.Size);
-				
-				for (var j = _icons.Count - 1; j >= 0; j--)
-				{
-					// Skip if comparing to itself
-					if(i == j) continue;
-
-					var iconB = _icons[j];
-
-					// Only remove icon A from the list if it is bigger then the compare to icon
-					if(iconA.Size.Area < iconB.Size.Area) continue;
-
-					var iconBRect = new Rect(iconB.Position, iconB.Size);
-
-					var overlapRect = iconARect.Intersect(iconBRect);
-
-					// Remove icon A from the icons and continue to the next one
-					if (overlapRect.Width > overlapThreshold && overlapRect.Height > overlapThreshold)
-					{
-						_icons.RemoveAt(i);
-						break;
-					}
-				}
-			}
 		}
 
 		/// <summary>
@@ -309,7 +365,7 @@ namespace RatEye.Processing
 				var scaledSlotSizeVec = new Vector2(scaledSlotSize, scaledSlotSize);
 				topLeft -= scaledSlotSizeVec / 8;
 				size += scaledSlotSizeVec / 4;
-				
+
 				var icon = _image.ToBitmap().Crop(topLeft.X, topLeft.Y, size.X, size.Y);
 				_icons.Add(new Icon(icon, topLeft, size, _config));
 				return true;
@@ -328,7 +384,7 @@ namespace RatEye.Processing
 		{
 			SatisfyState(State.GridParsed);
 
-//#if DEBUG
+			//#if DEBUG
 			Logger.LogDebugMat(_grid, "grid");
 
 			using var debugGrid = new Mat();
@@ -345,7 +401,7 @@ namespace RatEye.Processing
 				}
 			}
 			Logger.LogDebugMat(debugGrid, "icons");
-//#endif
+			//#endif
 
 			if (position == null) position = new Vector2(_grid.Size()) / 2;
 
