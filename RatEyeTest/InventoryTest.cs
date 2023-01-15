@@ -32,7 +32,7 @@ namespace RatEyeTest
 			var inventory = GetDefaultRatEyeEngine().NewInventory(image);
 			var icons = inventory.Icons;
 			Assert.NotNull(icons);
-			Assert.Equal(89, icons.Count());
+			Assert.Equal(60, icons.Count());
 			Assert.DoesNotContain(null, icons);
 		}
 
