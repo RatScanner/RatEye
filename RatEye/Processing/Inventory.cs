@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
@@ -13,7 +12,8 @@ namespace RatEye.Processing
 		private readonly Mat _image;
 		private Mat _grid;
 		private Mat _vertGrid;
-		private List<Icon> _icons;
+		private List<Rect> _boundingBoxes = new();
+		private List<Icon> _icons = new();
 
 		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
 
@@ -85,10 +85,17 @@ namespace RatEye.Processing
 			var maxBackgroundScalar = new Scalar(maxBackgroundColor.hue, maxBackgroundColor.saturation, maxBackgroundColor.value);
 			using var hsv = _image.CvtColor(ColorConversionCodes.BGR2HSV_FULL);
 			var colorFilter = hsv.InRange(minBackgroundScalar, maxBackgroundScalar);
-			Logger.LogDebugMat(colorFilter, "colorFilter");
+			Logger.LogDebugMat(colorFilter, "inventory/colorFilter");
 
 			var scale = _config.ProcessingConfig.Scale;
-			Cv2.Dilate(colorFilter, colorFilter, Mat.Ones(3, 3), null, (int)(3 * scale));
+
+			using var hStructure = Mat.Ones(MatType.CV_8U, new[] { 1, (int)(2 * scale) }).ToMat();
+			using var vStructure = Mat.Ones(MatType.CV_8U, new[] { (int)(2 * scale), 1 }).ToMat();
+			
+			Cv2.Dilate(colorFilter, colorFilter, hStructure, null, 1);
+			Cv2.Dilate(colorFilter, colorFilter, vStructure, null, 1);
+			Logger.LogDebugMat(colorFilter, "inventory/colorFilterPostDilate");
+			
 			_grid = colorFilter;
 		}
 
@@ -102,7 +109,7 @@ namespace RatEye.Processing
 			using var colorFilter = hsv.InRange(minGridScalar, maxGridScalar);
 
 
-			Logger.LogDebugMat(colorFilter, "colorFilter");
+			Logger.LogDebugMat(colorFilter, "inventory/colorFilter");
 
 			// Extract vertical and horizontal lines
 			var scaledSlotSize = (int)ProcessingConfig.ScaledSlotSize;
@@ -134,26 +141,28 @@ namespace RatEye.Processing
 		{
 			var contours = _grid.FindContoursAsArray(RetrievalModes.External, ContourApproximationModes.ApproxSimple);
 
-			var sortedContours = contours.OrderByDescending(contour => Cv2.ContourArea(contour)).ToArray();
-			if (sortedContours.Length > 0)
+			using var debugMat = _image.Clone();
+			if (Config.LogDebug) Cv2.DrawContours(debugMat, contours, -1, new(255, 0, 0));
+
+			var boundingBoxes = contours.Select(Cv2.BoundingRect).ToList();
+			if (Config.LogDebug) boundingBoxes.ForEach(b => debugMat.Rectangle(b, new(0, 255, 0)));
+
+			// Merge overlapping bounding boxes
+			for (var b = 0; b < boundingBoxes.Count; b++)
 			{
-				var rect = Cv2.BoundingRect(sortedContours[0]);
-				var scaledSlotSize = (int)_config.ProcessingConfig.ScaledSlotSize;
-				rect.X -= scaledSlotSize / 8;
-				rect.Y -= scaledSlotSize / 8;
-				rect.Width += scaledSlotSize / 4;
-				rect.Height += scaledSlotSize / 4;
-
-				if (Config.LogDebug)
+				for (var i = b + 1; i < boundingBoxes.Count; i++)
 				{
-					using var debugMat = _image.Clone();
-					debugMat.Rectangle(rect, new(255, 128, 0));
-					Logger.LogDebugMat(debugMat, "icon");
+					if (!boundingBoxes[b].IntersectsWith(boundingBoxes[i])) continue;
+					boundingBoxes[b] = boundingBoxes[b].Union(boundingBoxes[i]);
+					boundingBoxes.RemoveAt(i);
+					i = b;
 				}
-
-				var icon = _image.ToBitmap().Crop(rect.X, rect.Y, rect.Width, rect.Height);
-				_icons = new List<Icon> { new(icon, new(rect.X, rect.Y), new(rect.Width, rect.Height), _config) };
 			}
+
+			if (Config.LogDebug) boundingBoxes.ForEach(b => debugMat.Rectangle(b, new(0, 0, 255)));
+			Logger.LogDebugMat(debugMat, "inventory/boundingBoxes");
+
+			_boundingBoxes = boundingBoxes;
 		}
 
 		/// <summary>
@@ -165,8 +174,6 @@ namespace RatEye.Processing
 		/// </summary>
 		private void ParseInventoryGridNormal()
 		{
-			_icons = new List<Icon>();
-
 			var gridIndexer = _grid.GetGenericIndexer<byte>();
 			var vertGrindIndexer = _vertGrid.GetGenericIndexer<byte>();
 
@@ -384,26 +391,29 @@ namespace RatEye.Processing
 		{
 			SatisfyState(State.GridParsed);
 
-			//#if DEBUG
-			Logger.LogDebugMat(_grid, "grid");
-
-			using var debugGrid = new Mat();
-			Cv2.CvtColor(_grid.Clone(), debugGrid, ColorConversionCodes.GRAY2BGR);
-			for (var i = 0; i < _icons.Count; i++)
-			{
-				var icon = _icons[i];
-				var color = Scalar.RandomColor();
-				for (var j = 0; j <= 20; j++)
-				{
-					var inc = Vector2.One * j;
-					var rect = new Rect(icon.Position + inc, icon.Size - inc * 2);
-					debugGrid.Rectangle(rect, color.Mul(new Scalar(j / 20f, j / 20f, j / 20f)));
-				}
-			}
-			Logger.LogDebugMat(debugGrid, "icons");
-			//#endif
-
 			if (position == null) position = new Vector2(_grid.Size()) / 2;
+
+			if (_config.ProcessingConfig.InventoryConfig.OptimizeHighlighted) return LocateIconHighlighted(position);
+
+			if (Config.LogDebug)
+			{
+				Logger.LogDebugMat(_grid, "inventory/_grid");
+
+				using var debugGrid = new Mat();
+				Cv2.CvtColor(_grid.Clone(), debugGrid, ColorConversionCodes.GRAY2BGR);
+				for (var i = 0; i < _icons.Count; i++)
+				{
+					var icon = _icons[i];
+					var color = Scalar.RandomColor();
+					for (var j = 0; j <= 20; j++)
+					{
+						var inc = Vector2.One * j;
+						var rect = new Rect(icon.Position + inc, icon.Size - inc * 2);
+						debugGrid.Rectangle(rect, color.Mul(new Scalar(j / 20f, j / 20f, j / 20f)));
+					}
+				}
+				Logger.LogDebugMat(debugGrid, "inventory/iconRects");
+			}
 
 			foreach (var icon in _icons)
 			{
@@ -413,6 +423,37 @@ namespace RatEye.Processing
 				if (position.X < bottomRight.X && position.Y < bottomRight.Y) { return icon; }
 			}
 
+			return null;
+		}
+
+		private Icon LocateIconHighlighted(Vector2 position)
+		{
+			if (_boundingBoxes.Count == 0) return null;
+
+			for (var i = 0; i < _boundingBoxes.Count; i++)
+			{
+				var bb = _boundingBoxes[i];
+				if (!bb.Contains(position)) continue;
+
+				// Compensate more in height as the top and bottom text often interfere
+				var scaledSlotSize = (int)_config.ProcessingConfig.ScaledSlotSize;
+				bb.X -= scaledSlotSize / 8;
+				bb.Y -= scaledSlotSize / 4;
+				bb.Width += scaledSlotSize / 4;
+				bb.Height += scaledSlotSize / 2;
+
+				if (Config.LogDebug)
+				{
+					using var debugMat = _image.Clone();
+					debugMat.Rectangle(bb, new(255, 128, 0));
+					Logger.LogDebugMat(debugMat, "inventory/icon");
+				}
+
+				var iconImage = _image.ToBitmap().Crop(bb.X, bb.Y, bb.Width, bb.Height);
+				var icon = new Icon(iconImage, new(bb.X, bb.Y), new(bb.Width, bb.Height), _config);
+				_icons = new List<Icon> { icon };
+				return icon;
+			}
 			return null;
 		}
 

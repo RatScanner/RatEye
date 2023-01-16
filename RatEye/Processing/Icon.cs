@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using RatStash;
+using static RatEye.Config.Processing;
 
 namespace RatEye.Processing
 {
@@ -161,7 +162,7 @@ namespace RatEye.Processing
 
 		private void RescaleIcon()
 		{
-			Logger.LogDebugBitmap(_icon, nameof(_icon));
+			Logger.LogDebugBitmap(_icon, "icon/_icon");
 			_scaledIcon = _icon.Rescale(ProcessingConfig.InverseScale);
 		}
 
@@ -173,7 +174,7 @@ namespace RatEye.Processing
 			using var source = _scaledIcon.ToMat();
 			if (rotated) Cv2.Rotate(source, source, RotateFlags.Rotate90Counterclockwise);
 
-			Logger.LogDebugMat(source, nameof(source));
+			Logger.LogDebugMat(source, "icon/source");
 
 			(string match, float confidence, Vector2 pos) staticResult = default;
 			(string match, float confidence, Vector2 pos) dynamicResult = default;
@@ -238,8 +239,8 @@ namespace RatEye.Processing
 					confidence = (float)minVal;
 					bestMatch = icon.Key;
 					position = new Vector2(minLoc);
-					Logger.LogDebugMat(icon.Value, $"conf-{confidence}.png");
-					Logger.LogDebugMat(matches, $"match-conf-{confidence}.png");
+					//Logger.LogDebugMat(icon.Value, $"icon/conf-{confidence}.png");
+					//Logger.LogDebugMat(matches, $"icon/match-conf-{confidence}.png");
 				}
 			});
 
