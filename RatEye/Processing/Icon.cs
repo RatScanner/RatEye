@@ -215,7 +215,7 @@ namespace RatEye.Processing
 			if (!(result.confidence > _detectionConfidence)) return;
 
 			_rotated = rotated;
-			_itemPosition = result.pos * _config.ProcessingConfig.Scale;
+			_itemPosition = (rotated ? new(result.pos.Y, result.pos.X) : result.pos) * _config.ProcessingConfig.Scale;
 			_detectionConfidence = result.confidence;
 			_item = _config.IconManager.GetItem(result.match);
 			_itemExtraInfo = _config.IconManager.GetItemExtraInfo(result.match);
