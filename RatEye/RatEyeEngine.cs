@@ -5,6 +5,9 @@ using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEye
 {
+	/// <summary>
+	/// This is the RatEyeEngine which is the basis of all processing
+	/// </summary>
 	public class RatEyeEngine
 	{
 		/// <summary>
@@ -22,22 +25,34 @@ namespace RatEye
 		public RatEyeEngine(Config config, RatStash.Database itemDatabase)
 		{
 			Config = config;
-			
+
 			config.RatStashDB = itemDatabase;
 
 			Config.IconManager = new IconManager(config);
 		}
 
+		/// <summary>
+		/// Create new <see cref="MultiInspection"/> instance
+		/// </summary>
+		/// <param name="image">The image to process</param>
 		public MultiInspection NewMultiInspection(Bitmap image)
 		{
 			return new MultiInspection(image, Config);
 		}
 
+		/// <summary>
+		/// Create new <see cref="Inspection"/> instance
+		/// </summary>
+		/// <param name="image">The image to process</param>
 		public Inspection NewInspection(Bitmap image)
 		{
 			return new Inspection(image, Config);
 		}
 
+		/// <summary>
+		/// Create new <see cref="Inventory"/> instance
+		/// </summary>
+		/// <param name="image">The image to process</param>
 		public Inventory NewInventory(Bitmap image)
 		{
 			return new Inventory(image, Config);

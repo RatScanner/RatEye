@@ -30,7 +30,6 @@ namespace RatEye
 				/// <summary>
 				/// Maximum color for thresholding the grid
 				/// </summary>
-				/// <remarks>
 				public (int hue, int saturation, int value) MaxGridColor = (146, 46, 96);
 
 				/// <summary>

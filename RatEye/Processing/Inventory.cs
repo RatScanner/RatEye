@@ -6,6 +6,9 @@ using OpenCvSharp.Extensions;
 
 namespace RatEye.Processing
 {
+	/// <summary>
+	/// Inventory view processing object
+	/// </summary>
 	public class Inventory
 	{
 		private readonly Config _config;
@@ -91,11 +94,11 @@ namespace RatEye.Processing
 
 			using var hStructure = Mat.Ones(MatType.CV_8U, new[] { 1, (int)(2 * scale) }).ToMat();
 			using var vStructure = Mat.Ones(MatType.CV_8U, new[] { (int)(2 * scale), 1 }).ToMat();
-			
+
 			Cv2.Dilate(colorFilter, colorFilter, hStructure, null, 1);
 			Cv2.Dilate(colorFilter, colorFilter, vStructure, null, 1);
 			Logger.LogDebugMat(colorFilter, "inventory/colorFilterPostDilate");
-			
+
 			_grid = colorFilter;
 		}
 
@@ -457,6 +460,9 @@ namespace RatEye.Processing
 			return null;
 		}
 
+		/// <summary>
+		/// Investory desctructor
+		/// </summary>
 		~Inventory()
 		{
 			_image?.Dispose();

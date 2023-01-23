@@ -8,6 +8,9 @@ using Point = OpenCvSharp.Point;
 
 namespace RatEye.Processing
 {
+	/// <summary>
+	/// MultiInspection view processing object
+	/// </summary>
 	public class MultiInspection
 	{
 		private readonly Config _config;
@@ -20,6 +23,9 @@ namespace RatEye.Processing
 		// Backing property fields
 		private List<Inspection> _inspections;
 
+		/// <summary>
+		/// List of all inspections found in the image
+		/// </summary>
 		public List<Inspection> Inspections
 		{
 			get

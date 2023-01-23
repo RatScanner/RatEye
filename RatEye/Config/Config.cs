@@ -2,6 +2,9 @@
 
 namespace RatEye
 {
+	/// <summary>
+	/// This is the config which is used for all processing
+	/// </summary>
 	public partial class Config
 	{
 		/// <summary>

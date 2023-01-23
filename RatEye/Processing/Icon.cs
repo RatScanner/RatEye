@@ -9,6 +9,9 @@ using static RatEye.Config.Processing;
 
 namespace RatEye.Processing
 {
+	/// <summary>
+	/// Represents an icon in the inventory
+	/// </summary>
 	public class Icon
 	{
 		private readonly Config _config;
