@@ -82,6 +82,23 @@ namespace RatEye
 				/// Create a new inspection config instance
 				/// </summary>
 				public Inspection() { }
+
+				internal string GetHash()
+				{
+					var components = new string[]
+					{
+						MarkerThreshold.ToString(),
+						MarkerItemScale.ToString(),
+						MarkerBackgroundColor.ToString(),
+						BaseTitleSearchWidth.ToString(),
+						BaseTitleSearchHeight.ToString(),
+						BaseTitleSearchRightPadding.ToString(),
+						HorizontalTitleSearchOffsetFactor.ToString(),
+						CloseButtonColorLowerBound.ToString(),
+						CloseButtonColorUpperBound.ToString(),
+					};
+					return string.Join("<#sep#>", components).SHA256Hash();
+				}
 			}
 		}
 	}

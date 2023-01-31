@@ -27,6 +27,8 @@ namespace RatEye
 
 			config.RatStashDB = itemDatabase;
 
+			System.IO.Directory.CreateDirectory(config.PathConfig.CacheDir);
+
 			Config.IconManager = new IconManager(config);
 		}
 

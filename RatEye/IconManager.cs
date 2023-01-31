@@ -171,6 +171,7 @@ namespace RatEye
 				}
 				try
 				{
+					var configHash = _config.GetHash();
 					Parallel.ForEach(iconPathArray, iconPath =>
 					{
 						var iconKey = GetIconKey(iconPath, iconType);
@@ -182,11 +183,22 @@ namespace RatEye
 						if (iconType == IconType.Static && StaticIcons.Any(x => x.Value.ContainsKey(iconKey))) return;
 						if (iconType == IconType.Dynamic && DynamicIcons.Any(x => x.Value.ContainsKey(iconKey))) return;
 
+						var useCache = _config.ProcessingConfig.UseCache;
+						var cacheIconPath = $"{_config.PathConfig.CacheDir}\\{iconKey.CacheKey(configHash)}.bmp";
+						var cacheHit = useCache && File.Exists(cacheIconPath);
+
+						iconPath = cacheHit ? cacheIconPath : iconPath;
+
 						using var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
-						var icon = GetIconWithBackground(mat, item);
+
+						var icon = mat;
+						if (!cacheHit) icon = GetIconWithBackground(mat, item);
 
 						// Do not add the icon to the list, if its size cannot be converted to slots
 						if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) return;
+
+						// Add the icon to the cache if caching is enabled and doesn't already contain it
+						if (useCache && !cacheHit) icon.SaveImage(cacheIconPath);
 
 						var size = new Vector2(PixelsToSlots(icon.Width), PixelsToSlots(icon.Height));
 						lock (loadedIcons)

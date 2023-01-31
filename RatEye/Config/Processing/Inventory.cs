@@ -50,6 +50,21 @@ namespace RatEye
 				/// Create a new inventory config instance
 				/// </summary>
 				public Inventory() { }
+
+				internal string GetHash()
+				{
+					var components = new string[]
+					{
+						GridColor.ToString(),
+						BackgroundAlpha.ToString(),
+						MinGridColor.ToString(),
+						MaxGridColor.ToString(),
+						MinHighlightingColor.ToString(),
+						MaxHighlightingColor.ToString(),
+						OptimizeHighlighted.ToString(),
+					};
+					return string.Join("<#sep#>", components).SHA256Hash();
+				}
 			}
 		}
 	}

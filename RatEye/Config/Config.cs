@@ -42,5 +42,15 @@ namespace RatEye
 		/// Create a new config instance
 		/// </summary>
 		public Config() { }
+
+		internal string GetHash()
+		{
+			var components = new string[] {
+				LogDebug.ToString(),
+				PathConfig.GetHash(),
+				ProcessingConfig.GetHash(),
+			};
+			return string.Join("<#sep#>", components).SHA256Hash();
+		}
 	}
 }

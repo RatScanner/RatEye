@@ -40,6 +40,19 @@
 				/// Create a new icon config instance
 				/// </summary>
 				public Icon() { }
+
+				internal string GetHash()
+				{
+					var components = new string[]
+					{
+						UseStaticIcons.ToString(),
+						UseDynamicIcons.ToString(),
+						WatchDynamicIcons.ToString(),
+						UseLegacyCacheIndex.ToString(),
+						ScanRotatedIcons.ToString(),
+					};
+					return string.Join("<#sep#>", components).SHA256Hash();
+				}
 			}
 		}
 	}

@@ -24,6 +24,19 @@ namespace RatEye
 			private static string DataDir => Combine(BaseDir, "Data");
 
 			/// <summary>
+			/// Temporary directory path
+			/// </summary>
+			private static string TempDir => Combine(System.IO.Path.GetTempPath(), "RatEye");
+
+			/// <summary>
+			/// Path of the cache folder
+			/// </summary>
+			/// <remarks>
+			/// Only used when <see cref="RatEye.Config.Processing.UseCache"/> is <see langword="true"/>
+			/// </remarks>
+			public string CacheDir => Combine(TempDir, "Cache");
+
+			/// <summary>
 			/// Path of the folder containing static icons
 			/// </summary>
 			public string StaticIcons = Combine(DataDir, "name");
@@ -109,6 +122,27 @@ namespace RatEye
 			{
 				var eftTempDir = "Battlestate Games\\EscapeFromTarkov\\";
 				return Combine(System.IO.Path.GetTempPath(), eftTempDir);
+			}
+
+			internal string GetHash()
+			{
+				var components = new string[]
+				{
+					BaseDir,
+					DataDir,
+					TempDir,
+					CacheDir,
+					StaticIcons,
+					DynamicIcons,
+					StaticCorrelationData,
+					DynamicCorrelationData,
+					UnknownIcon,
+					TrainedData,
+					TesseractLibSearchPath,
+					Debug,
+					LogFile,
+				};
+				return string.Join("<#sep#>", components).SHA256Hash();
 			}
 		}
 	}

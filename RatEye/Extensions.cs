@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using Color = System.Drawing.Color;
@@ -328,6 +331,40 @@ namespace RatEye
 			}
 
 			return (float)(target.Length - distance[currentRow, m]) / target.Length;
+		}
+		
+		/// <summary>
+		/// Computes the SHA256 hash of the string
+		/// </summary>
+		/// <param name="value">String to be hashed</param>
+		/// <returns>Hash as hex string</returns>
+		public static string SHA256Hash(this string value)
+		{
+			var buffer = Encoding.UTF8.GetBytes(value);
+			var hash = SHA256.Create().ComputeHash(buffer);
+			return string.Concat(hash.Select(x => x.ToString("X2")));
+		}
+
+		/// <summary>
+		/// Computes key which can be used in the cache which is unique given the config
+		/// </summary>
+		/// <param name="value">String which will influence the key</param>
+		/// <param name="config">Config which will influence the key</param>
+		/// <returns>Cache key</returns>
+		internal static string CacheKey(this string value, Config config)
+		{
+			return value.CacheKey(config.GetHash());
+		}
+
+		/// <summary>
+		/// Computes key which can be used in the cache which is unique given the config
+		/// </summary>
+		/// <param name="value">String which will influence the key</param>
+		/// <param name="configHash">Hash of the config which will influence the key</param>
+		/// <returns>Cache key</returns>
+		internal static string CacheKey(this string value, string configHash)
+		{
+			return (value + configHash).SHA256Hash();
 		}
 
 		#endregion

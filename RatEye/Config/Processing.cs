@@ -1,4 +1,8 @@
 ﻿using System;
+using OpenCvSharp.ML;
+using OpenCvSharp.Text;
+using System.Diagnostics;
+using System.Runtime.InteropServices.ComTypes;
 using RatStash;
 
 namespace RatEye
@@ -11,6 +15,11 @@ namespace RatEye
 		/// </summary>
 		public partial class Processing
 		{
+			/// <summary>
+			/// Use a persistent cache for objects which can be reused
+			/// </summary>
+			public bool UseCache = true;
+
 			/// <summary>
 			/// The language to use when processing
 			/// </summary>
@@ -71,6 +80,21 @@ namespace RatEye
 				var screenScaleFactor2 = height / 1080f;
 
 				return Math.Min(screenScaleFactor1, screenScaleFactor2);
+			}
+
+			internal string GetHash()
+			{
+				var components = new string[]
+				{
+					UseCache.ToString(),
+					Language.ToString(),
+					Scale.ToString(),
+					BaseSlotSize.ToString(),
+					IconConfig.GetHash(),
+					InspectionConfig.GetHash(),
+					InventoryConfig.GetHash(),
+				};
+				return string.Join("<#sep#>", components).SHA256Hash();
 			}
 		}
 	}
