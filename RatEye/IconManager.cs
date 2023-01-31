@@ -189,10 +189,17 @@ namespace RatEye
 
 						iconPath = cacheHit ? cacheIconPath : iconPath;
 
-						using var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
 
-						var icon = mat;
-						if (!cacheHit) icon = GetIconWithBackground(mat, item);
+						var icon = new Mat();
+						if (cacheHit)
+						{
+							icon = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
+						}
+						else
+						{
+							using var mat = Cv2.ImRead(iconPath, ImreadModes.Unchanged);
+							icon = GetIconWithBackground(mat, item);
+						}
 
 						// Do not add the icon to the list, if its size cannot be converted to slots
 						if (!IsValidPixelSize(icon.Width) || !IsValidPixelSize(icon.Height)) return;
