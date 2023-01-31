@@ -171,7 +171,8 @@ namespace RatEye
 				}
 				try
 				{
-					var configHash = _config.GetHash();
+					var configHash = GetConfigHash();
+
 					Parallel.ForEach(iconPathArray, iconPath =>
 					{
 						var iconKey = GetIconKey(iconPath, iconType);
@@ -567,6 +568,29 @@ namespace RatEye
 			finally { _staticCorrelationDataLock.ExitReadLock(); }
 
 			return null;
+		}
+
+		/// <summary>
+		/// Calculate the hash of the current config but only consider used values
+		/// </summary>
+		/// <returns>Hash as hex string</returns>
+		private string GetConfigHash()
+		{
+			return new Config()
+			{
+				ProcessingConfig = new Config.Processing()
+				{
+					// Language = _config.ProcessingConfig.Language,
+					IconConfig = new Config.Processing.Icon()
+					{
+						ScanRotatedIcons = _config.ProcessingConfig.IconConfig.ScanRotatedIcons,
+					},
+					InventoryConfig = new Config.Processing.Inventory()
+					{
+						OptimizeHighlighted = _config.ProcessingConfig.InventoryConfig.OptimizeHighlighted,
+					},
+				},
+			}.GetHash();
 		}
 
 		/// <summary>
