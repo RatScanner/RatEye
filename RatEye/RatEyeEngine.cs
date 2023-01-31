@@ -6,7 +6,7 @@ using Inventory = RatEye.Processing.Inventory;
 namespace RatEye
 {
 	/// <summary>
-	/// This is the RatEyeEngine which is the basis of all processing
+	/// Core class which allows creating new processing objects
 	/// </summary>
 	public class RatEyeEngine
 	{

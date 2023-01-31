@@ -3,7 +3,7 @@
 namespace RatEye
 {
 	/// <summary>
-	/// This is the config which is used for all processing
+	/// Top level config class which includes members for processing, file paths, etc.
 	/// </summary>
 	public partial class Config
 	{

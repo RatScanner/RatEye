@@ -1,7 +1,7 @@
 ﻿namespace RatEye
 {
 	/// <summary>
-	/// A 2D vector
+	/// A 2D <see cref="int"/> vector
 	/// </summary>
 	public class Vector2
 	{
@@ -16,31 +16,31 @@
 		public int Y;
 
 		/// <summary>
-		/// System.Drawing.Point to Vector2
+		/// <see cref="System.Drawing.Point"/> to <see cref="Vector2"/>
 		/// </summary>
-		/// <param name="point">System.Drawing.Point to convert</param>
+		/// <param name="point"><see cref="System.Drawing.Point "/> to convert</param>
 		public Vector2(System.Drawing.Point point) : this(point.X, point.Y) { }
 
 		/// <summary>
-		/// OpenCvSharp.Point to Vector2
+		/// <see cref="OpenCvSharp.Point"/> to <see cref="Vector2"/>
 		/// </summary>
-		/// <param name="point">OpenCvSharp.Point to convert</param>
+		/// <param name="point"><see cref="OpenCvSharp.Point "/> to convert</param>
 		public Vector2(OpenCvSharp.Point point) : this(point.X, point.Y) { }
 
 		/// <summary>
-		/// System.Drawing.Size to Vector2
+		/// <see cref="System.Drawing.Size"/> to <see cref="Vector2"/>
 		/// </summary>
-		/// <param name="size">System.Drawing.Size to convert</param>
+		/// <param name="size"><see cref="System.Drawing.Size "/> to convert</param>
 		public Vector2(System.Drawing.Size size) : this(size.Width, size.Height) { }
 
 		/// <summary>
-		/// OpenCvSharp.Size to Vector2
+		/// <see cref="OpenCvSharp.Size"/> to <see cref="Vector2"/>
 		/// </summary>
-		/// <param name="size">OpenCvSharp.Size to convert</param>
+		/// <param name="size"><see cref="OpenCvSharp.Size "/> to convert</param>
 		public Vector2(OpenCvSharp.Size size) : this(size.Width, size.Height) { }
 
 		/// <summary>
-		/// Constructor for Vector2
+		/// Constructor for <see cref="Vector2"/>
 		/// </summary>
 		/// <param name="x">The X value</param>
 		/// <param name="y">The Y value</param>
@@ -61,36 +61,36 @@
 		public static Vector2 One => new Vector2(1, 1);
 
 		/// <summary>
-		/// Vector2 to System.Drawing.Point
+		/// <see cref="Vector2"/> to <see cref="System.Drawing.Point"/>
 		/// </summary>
-		/// <param name="vec">Vector2 to convert</param>
+		/// <param name="vec"><see cref="Vector2 "/> to convert</param>
 		public static implicit operator System.Drawing.Point(Vector2 vec)
 		{
 			return new System.Drawing.Point(vec.X, vec.Y);
 		}
 
 		/// <summary>
-		/// Vector2 to OpenCvSharp.Point
+		/// <see cref="Vector2"/> to <see cref="OpenCvSharp.Point"/>
 		/// </summary>
-		/// <param name="vec">Vector2 to convert</param>
+		/// <param name="vec"><see cref="Vector2 "/> to convert</param>
 		public static implicit operator OpenCvSharp.Point(Vector2 vec)
 		{
 			return new OpenCvSharp.Point(vec.X, vec.Y);
 		}
 
 		/// <summary>
-		/// Vector2 to System.Drawing.Size
+		/// <see cref="Vector2"/> to <see cref="System.Drawing.Size"/>
 		/// </summary>
-		/// <param name="vec">Vector2 to convert</param>
+		/// <param name="vec"><see cref="Vector2 "/> to convert</param>
 		public static implicit operator System.Drawing.Size(Vector2 vec)
 		{
 			return new System.Drawing.Size(vec.X, vec.Y);
 		}
 
 		/// <summary>
-		/// Vector2 to OpenCvSharp.Size
+		/// <see cref="Vector2"/> to <see cref="OpenCvSharp.Size"/>
 		/// </summary>
-		/// <param name="vec">Vector2 to convert</param>
+		/// <param name="vec"><see cref="Vector2 "/> to convert</param>
 		public static implicit operator OpenCvSharp.Size(Vector2 vec)
 		{
 			return new OpenCvSharp.Size(vec.X, vec.Y);

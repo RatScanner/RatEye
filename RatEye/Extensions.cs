@@ -287,7 +287,7 @@ namespace RatEye
 
 		#region String Extensions
 		/// <summary>
-		/// Calculates the Levenshtein distance between two strings.
+		/// Calculates the normed Levenshtein distance between two strings
 		/// </summary>
 		/// <param name="source">Source string</param>
 		/// <param name="target">Target string</param>

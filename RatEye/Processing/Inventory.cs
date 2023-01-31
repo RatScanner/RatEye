@@ -7,7 +7,7 @@ using OpenCvSharp.Extensions;
 namespace RatEye.Processing
 {
 	/// <summary>
-	/// Inventory view processing object
+	/// Represents a grid style inventory which can contain multiple <see cref="RatEye.Processing.Icon"/>
 	/// </summary>
 	public class Inventory
 	{
@@ -461,7 +461,7 @@ namespace RatEye.Processing
 		}
 
 		/// <summary>
-		/// Investory desctructor
+		/// Inventory destructor
 		/// </summary>
 		~Inventory()
 		{

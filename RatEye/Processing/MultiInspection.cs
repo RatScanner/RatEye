@@ -9,7 +9,7 @@ using Point = OpenCvSharp.Point;
 namespace RatEye.Processing
 {
 	/// <summary>
-	/// MultiInspection view processing object
+	/// Represents multiple <see cref="RatEye.Processing.Inspection"/>
 	/// </summary>
 	public class MultiInspection
 	{
