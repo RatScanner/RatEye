@@ -2,6 +2,9 @@
 
 namespace RatEye
 {
+	/// <summary>
+	/// Top level config class which includes members for processing, file paths, etc.
+	/// </summary>
 	public partial class Config
 	{
 		/// <summary>

@@ -9,6 +9,9 @@ using Size = OpenCvSharp.Size;
 
 namespace RatEye
 {
+	/// <summary>
+	/// Extension methods for OpenCvSharp
+	/// </summary>
 	public static class Extensions
 	{
 		#region Bitmap Extensions
@@ -283,7 +286,12 @@ namespace RatEye
 		#endregion
 
 		#region String Extensions
-
+		/// <summary>
+		/// Calculates the normed Levenshtein distance between two strings
+		/// </summary>
+		/// <param name="source">Source string</param>
+		/// <param name="target">Target string</param>
+		/// <returns>Levenshtein distance</returns>
 		public static float NormedLevenshteinDistance(this string source, string target)
 		{
 			if (string.IsNullOrEmpty(source)) { return string.IsNullOrEmpty(target) ? 0 : target.Length; }

@@ -9,6 +9,9 @@ using Tesseract;
 
 namespace RatEye.Processing
 {
+	/// <summary>
+	/// Represents an inspection view
+	/// </summary>
 	public class Inspection
 	{
 		private readonly Config _config;
