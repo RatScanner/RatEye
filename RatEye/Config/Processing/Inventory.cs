@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using OpenCvSharp;
+﻿using OpenCvSharp;
 
 namespace RatEye
 {

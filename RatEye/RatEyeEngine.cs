@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using RatEye.Processing;
-using RatStash;
 using Inventory = RatEye.Processing.Inventory;
 
 namespace RatEye

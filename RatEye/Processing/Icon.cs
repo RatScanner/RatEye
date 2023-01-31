@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using RatStash;
-using static RatEye.Config.Processing;
 
 namespace RatEye.Processing
 {
