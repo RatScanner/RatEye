@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using RatStash;
+using Tesseract;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace RatEye.Processing
 {
@@ -21,8 +25,10 @@ namespace RatEye.Processing
 		private float _detectionConfidence;
 		private Vector2 _itemPosition;
 		private bool _rotated;
+		private string _ocrTitle = "";
 
 		private Config.Processing ProcessingConfig => _config.ProcessingConfig;
+		private Config.Path PathConfig => _config.PathConfig;
 		private Config.Processing.Icon IconConfig => ProcessingConfig.IconConfig;
 
 		/// <summary>
@@ -31,7 +37,7 @@ namespace RatEye.Processing
 		private object _sync = new();
 
 		/// <summary>
-		/// Position of the icon inside the inventory
+		/// Position of the icon inside the inventory (top, left)
 		/// </summary>
 		public Vector2 Position { get; }
 
@@ -151,8 +157,12 @@ namespace RatEye.Processing
 						RescaleIcon();
 						break;
 					case State.Scanned:
-						TemplateMatch();
-						if (_config.ProcessingConfig.IconConfig.ScanRotatedIcons) TemplateMatch(true);
+						if (IconConfig.ScanMode == Config.Processing.Icon.ScanModes.TemplateMatching)
+						{
+							TemplateMatch();
+							if (IconConfig.ScanRotatedIcons) TemplateMatch(true);
+						}
+						else if (IconConfig.ScanMode == Config.Processing.Icon.ScanModes.OCR) OCR();
 						break;
 					default:
 						throw new Exception("Cannot satisfy unknown state.");
@@ -165,7 +175,9 @@ namespace RatEye.Processing
 		private void RescaleIcon()
 		{
 			Logger.LogDebugBitmap(_icon, "icon/_icon");
-			_scaledIcon = _icon.Rescale(ProcessingConfig.InverseScale);
+			var mul = IconConfig.ScanMode == Config.Processing.Icon.ScanModes.OCR ? 2 : 1;
+			_scaledIcon = _icon.Rescale(ProcessingConfig.InverseScale * mul);
+			Logger.LogDebugBitmap(_scaledIcon, "icon/_scaledIcon");
 		}
 
 		private void TemplateMatch(bool rotated = false)
@@ -255,10 +267,127 @@ namespace RatEye.Processing
 		/// <returns>Slot size of the icon</returns>
 		private Vector2 IconSlotSize()
 		{
-			// Use converter class to round to nearest int instead of always rounding down
-			var x = (Size.X - 1) / ProcessingConfig.ScaledSlotSize;
-			var y = (Size.Y - 1) / ProcessingConfig.ScaledSlotSize;
+			// Add 8 to pixels as buffer in case the item is detected a few pixels to small
+			var x = (Size.X + 8) / ProcessingConfig.ScaledSlotSize;
+			var y = (Size.Y + 8) / ProcessingConfig.ScaledSlotSize;
 			return new Vector2((int)x, (int)y);
+		}
+		/// <summary>
+		/// Perform optical character recognition on a image
+		/// </summary>
+		/// <param name="image">Image to perform OCR on</param>
+		/// <returns>Detected characters in image</returns>
+		private void OCR()
+		{
+			var topCutoff = 0;
+			var leftCutoff = 4;
+
+			// Setup tesseract
+			Logger.LogDebugMat(_scaledIcon.ToMat());
+			var topText = _scaledIcon.Crop(leftCutoff, topCutoff, _scaledIcon.Width - leftCutoff, 24);
+			using var topTextMat = topText.ToMat();
+
+			// Gray scale image
+			//Logger.LogDebug("Gray scaling...");
+			//var cvu83 = topTextMat.CvtColor(ColorConversionCodes.BGR2GRAY, 1);
+			//Logger.LogDebugMat(cvu83);
+
+			// Binarize image
+			//Logger.LogDebug("Binarizing...");
+			//cvu83 = cvu83.Threshold(120, 255, ThresholdTypes.BinaryInv);
+			//Logger.LogDebugMat(cvu83);
+
+			using var hsv = topTextMat.CvtColor(ColorConversionCodes.BGR2HSV_FULL);
+			using var colorFilter = hsv.InRange(new Scalar(93 * (255f / 180f), 16, 97), new Scalar(113 * (255f / 180f), 24, 217));
+
+			Cv2.MorphologyEx(colorFilter, colorFilter, MorphTypes.Close, Mat.Ones(2, 2));
+			Cv2.BitwiseNot(colorFilter, colorFilter);
+			Logger.LogDebugMat(colorFilter);
+
+			using var final = colorFilter.ToBitmap().Rescale(2);
+			Logger.LogDebugBitmap(final);
+
+			// Convert to Pix
+			using var pix = PixConverter.ToPix(final);
+
+			// OCR
+			Logger.LogDebug("Applying OCR...");
+			using var result = GetTesseractEngine().Process(pix);
+			var text = result.GetText();
+
+			var r = result.GetSegmentedRegions(PageIteratorLevel.TextLine);
+			foreach (var x in r)
+			{
+				Logger.LogDebug("TEXT: " + x);
+			}
+			Logger.LogDebugMat(topTextMat, "lalalla");
+
+			var rgx = new Regex("[^a-zA-Z0-9 -\\.]");
+			_itemPosition = Vector2.Zero;
+			_ocrTitle = rgx.Replace(text.CyrillicToLatin().Trim(), "").Trim();
+			Logger.LogDebug("Read: " + _ocrTitle);
+			SetOCRItem();
+		}
+
+		/// <summary>
+		/// Set the item to one, best matching the scanned title
+		/// </summary>
+		private void SetOCRItem()
+		{
+			var slotSize = IconSlotSize();
+			var items = _config.RatStashDB.GetItems(i =>
+			{
+				var v = new Vector2(i.GetSlotSize());
+				return v == slotSize || v == slotSize.Flipped;
+			});
+			_item = items.Aggregate((i1, i2) =>
+			{
+				var i1Dist = i1.ShortName.Replace("I", "T").CyrillicToLatin().NormedLevenshteinDistance(_ocrTitle);
+				var i2Dist = i2.ShortName.Replace("I", "T").CyrillicToLatin().NormedLevenshteinDistance(_ocrTitle);
+				return i1Dist > i2Dist ? i1 : i2;
+			});
+			_detectionConfidence = _item.ShortName.CyrillicToLatin().NormedLevenshteinDistance(_ocrTitle);
+			_rotated = new Vector2(_item.GetSlotSize()) != slotSize;
+		}
+
+		/// <summary>
+		/// Creates an instance of the OCRTesseract class. Initializes Tesseract.
+		/// </summary>
+		/// <returns>Tesseract instance trained for the bender font</returns>
+		private TesseractEngine GetTesseractEngine()
+		{
+			// Return if tesseract instance was already created
+			var tesseractEngine = IconConfig.TesseractEngine;
+			if (tesseractEngine != null) return tesseractEngine;
+
+			// Check if trained data is present
+			var langCode = _config.ProcessingConfig.Language.ToISO3Code();
+			var traineddataPath = $"{PathConfig.TrainedData}\\{langCode}.traineddata";
+			if (!System.IO.File.Exists(traineddataPath))
+			{
+				var message = "Could not find traineddata at: " + traineddataPath;
+				var ex = new ArgumentException(message, PathConfig.TrainedData);
+				throw ex;
+			}
+
+			// Load additional language to expand the primary one
+			var addLang = _config.ProcessingConfig.Language switch
+			{
+				//Language.Chinese => "eng",
+				Language.Czech => "+eng",
+				Language.Japanese => "+eng",
+				Language.Korean => "+eng",
+				Language.Russian => "+eng",
+				_ => "",
+			};
+
+			var language = langCode + addLang;
+
+			// Create a tesseract instance
+			IconConfig.TesseractEngine = new TesseractEngine(PathConfig.TrainedData, language, EngineMode.LstmOnly);
+			IconConfig.TesseractEngine.DefaultPageSegMode = PageSegMode.RawLine;
+
+			return IconConfig.TesseractEngine;
 		}
 	}
 }

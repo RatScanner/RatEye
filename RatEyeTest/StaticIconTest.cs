@@ -21,6 +21,22 @@ namespace RatEyeTest
 		}
 
 		[Fact]
+		public void ItemFHDOCR()
+		{
+			var image = new Bitmap("TestData/FHD/Inventory2.png");
+			var engine = GetRatEyeEngine();
+			engine.Config.ProcessingConfig.IconConfig.ScanMode = Config.Processing.Icon.ScanModes.OCR;
+
+			var inventory = engine.NewInventory(image);
+			var icon = inventory.LocateIcon(new Vector2(735, 310));
+			Assert.Equal("Peltor ComTac 2 headset", icon.Item.Name);
+			Assert.Equal("5645bcc04bdc2d363b8b4572", icon.Item.Id);
+			var expectedPath = Path.GetFullPath("Data/Icons/5645bcc04bdc2d363b8b4572.png");
+			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
+			Assert.False(icon.Rotated);
+		}
+
+		[Fact]
 		public void ItemFHDRotated()
 		{
 			var image = new Bitmap("TestData/FHD/Inventory2.png");
@@ -46,6 +62,21 @@ namespace RatEyeTest
 			Assert.Equal("590c311186f77424d1667482", icon.Item.Id);
 			var expectedPath = Path.GetFullPath("Data/Icons/590c311186f77424d1667482.png");
 			Assert.Equal(expectedPath, Path.GetFullPath(icon.IconPath));
+			Assert.False(icon.Rotated);
+		}
+
+		[Fact]
+		public void ItemQHDOCR()
+		{
+			var image = new Bitmap("TestData/QHD/Container.png");
+			var scale = Config.Processing.Resolution2Scale(2560, 1440);
+			var engine = GetRatEyeEngine(scale);
+			engine.Config.ProcessingConfig.IconConfig.ScanMode = Config.Processing.Icon.ScanModes.OCR;
+
+			var inventory = engine.NewInventory(image);
+			var icon = inventory.LocateIcon(new Vector2(735, 330));
+			Assert.Equal("Bolts", icon.Item.Name);
+			Assert.Equal("57347c5b245977448d35f6e1", icon.Item.Id);
 			Assert.False(icon.Rotated);
 		}
 

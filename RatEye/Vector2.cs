@@ -1,4 +1,6 @@
-﻿namespace RatEye
+﻿using System;
+
+namespace RatEye
 {
 	/// <summary>
 	/// A 2D <see cref="int"/> vector
@@ -14,6 +16,12 @@
 		/// The Y value
 		/// </summary>
 		public int Y;
+
+		/// <summary>
+		/// Tuple to <see cref="Vector2"/>
+		/// </summary>
+		/// <param name="tuple">Tuple to convert</param>
+		public Vector2((int, int) tuple) : this(tuple.Item1, tuple.Item2) { }
 
 		/// <summary>
 		/// <see cref="System.Drawing.Point"/> to <see cref="Vector2"/>
@@ -59,6 +67,15 @@
 		/// Returns a new <see cref="Vector2"/> with <c>X = 1</c> and <c>Y = 1</c>
 		/// </summary>
 		public static Vector2 One => new Vector2(1, 1);
+
+		/// <summary>
+		/// <see cref="Vector2"/> to tuple
+		/// </summary>
+		/// <param name="vec"><see cref="Vector2 "/> to convert</param>
+		public static implicit operator (int, int)(Vector2 vec)
+		{
+			return (vec.X, vec.Y);
+		}
 
 		/// <summary>
 		/// <see cref="Vector2"/> to <see cref="System.Drawing.Point"/>
@@ -232,6 +249,11 @@
 		/// X * Y
 		/// </summary>
 		public int Area => X * Y;
+
+		/// <summary>
+		/// This vector with x and y values swapped
+		/// </summary>
+		public Vector2 Flipped => new(Y, X);
 
 		/// <summary>
 		/// Check vector equality
