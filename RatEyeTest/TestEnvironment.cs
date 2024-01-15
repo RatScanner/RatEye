@@ -36,7 +36,6 @@ namespace RatEyeTest
 					IconConfig = new Config.Processing.Icon()
 					{
 						UseStaticIcons = true,
-						UseDynamicIcons = false,
 					},
 					InventoryConfig = new Config.Processing.Inventory()
 					{

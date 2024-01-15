@@ -193,12 +193,11 @@ namespace RatEye.Processing
 			(string match, float confidence, Vector2 pos) staticResult = default;
 			(string match, float confidence, Vector2 pos) dynamicResult = default;
 
-			if (!(IconConfig.UseStaticIcons || IconConfig.UseDynamicIcons))
+			if (!IconConfig.UseStaticIcons)
 			{
 				throw new Exception(
-					"No icons for template matching can be used. At least one of " +
-					nameof(IconConfig.UseStaticIcons) + " and " + nameof(IconConfig.UseDynamicIcons) +
-					" have to be set");
+					"No icons for template matching can be used." +
+					nameof(IconConfig.UseStaticIcons) + " is false.");
 			}
 
 			var iconManager = _config.IconManager;
@@ -211,16 +210,6 @@ namespace RatEye.Processing
 					iconManager.StaticIconsLock.EnterReadLock();
 					try { staticResult = TemplateMatchSub(source, iconManager.StaticIcons[slotSize]); }
 					finally { iconManager.StaticIconsLock.ExitReadLock(); }
-				}
-			}
-
-			if (IconConfig.UseDynamicIcons)
-			{
-				if (iconManager.DynamicIcons.ContainsKey(slotSize))
-				{
-					iconManager.DynamicIconsLock.EnterReadLock();
-					try { dynamicResult = TemplateMatchSub(source, iconManager.DynamicIcons[slotSize]); }
-					finally { iconManager.DynamicIconsLock.ExitReadLock(); }
 				}
 			}
 

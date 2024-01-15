@@ -104,8 +104,6 @@ namespace RatEye
 
 			var iconConfig = _config.ProcessingConfig.IconConfig;
 			if (iconConfig.UseStaticIcons) LoadStaticIcons();
-			if (iconConfig.UseDynamicIcons) LoadDynamicIcons();
-			if (iconConfig.UseDynamicIcons && iconConfig.WatchDynamicIcons) InitFileWatcher();
 		}
 
 		#region Icon loading
@@ -125,23 +123,6 @@ namespace RatEye
 				}
 			}
 			finally { StaticIconsLock.ExitWriteLock(); }
-		}
-
-		private void LoadDynamicIcons()
-		{
-			LoadDynamicCorrelationData();
-
-			var newIcons = LoadNewIcons(_config.PathConfig.DynamicIcons, IconType.Dynamic, 2);
-			DynamicIconsLock.EnterWriteLock();
-			try
-			{
-				foreach (var icons in newIcons)
-				{
-					if (!DynamicIcons.ContainsKey(icons.Key)) DynamicIcons.Add(icons.Key, new Dictionary<string, Mat>());
-					foreach (var icon in icons.Value) DynamicIcons[icons.Key].Add(icon.Key, icon.Value);
-				}
-			}
-			finally { DynamicIconsLock.ExitWriteLock(); }
 		}
 
 		private Dictionary<Vector2, Dictionary<string, Mat>> LoadNewIcons(
@@ -391,51 +372,7 @@ namespace RatEye
 			finally { _staticCorrelationDataLock.ExitWriteLock(); }
 		}
 
-		private void LoadDynamicCorrelationData()
-		{
-			var path = _config.PathConfig.DynamicCorrelationData;
-
-			Dictionary<int, (Item item, ItemExtraInfo itemExtraInfo)> parsedIndex;
-			var legacyIndex = _config.ProcessingConfig.IconConfig.UseLegacyCacheIndex;
-			if (legacyIndex) parsedIndex = _config.RatStashDB.ParseItemCacheIndex(path);
-			else parsedIndex = _config.RatStashDB.ParseItemCacheHashIndex(path);
-
-			var correlationData = parsedIndex.ToDictionary(
-				x => GetIconKey(x.Key + ".png", IconType.Dynamic), x => x.Value);
-
-			_dynamicCorrelationDataLock.EnterWriteLock();
-			try { _dynamicCorrelationData = correlationData; }
-			finally { _dynamicCorrelationDataLock.ExitWriteLock(); }
-		}
-
 		#endregion
-
-		/// <summary>
-		/// Initialize a file watcher for the dynamic correlation data
-		/// to update the dynamic icons when something changes
-		/// </summary>
-		private void InitFileWatcher()
-		{
-			Logger.LogDebug("Initializing file watcher for dynamic correlation data...");
-			_dynCorrelationDataWatcher = new FileSystemWatcher();
-			_dynCorrelationDataWatcher.Path = Path.GetDirectoryName(_config.PathConfig.DynamicCorrelationData);
-			_dynCorrelationDataWatcher.Filter = Path.GetFileName(_config.PathConfig.DynamicCorrelationData);
-			_dynCorrelationDataWatcher.NotifyFilter = NotifyFilters.Size;
-			_dynCorrelationDataWatcher.Changed += OnDynamicCorrelationDataChange;
-			_dynCorrelationDataWatcher.EnableRaisingEvents = true;
-		}
-
-		/// <summary>
-		/// Event which gets called when the dynamic correlation data file
-		/// get changed. Dynamic icons and correlation data get updated.
-		/// </summary>
-		private void OnDynamicCorrelationDataChange(object source, FileSystemEventArgs _)
-		{
-			Logger.LogDebug("Dynamic correlation data changed");
-
-			try { LoadDynamicIcons(); }
-			catch (Exception e) { Logger.LogDebug("Error while loading new dynamic icons", e); }
-		}
 
 		/// <summary>
 		/// Get the unique icon key for a icon path and its type

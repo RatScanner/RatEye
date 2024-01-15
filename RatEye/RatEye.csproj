@@ -22,7 +22,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 		<PackageReference Include="OpenCvSharp4.Extensions" Version="4.7.0.20230115" />
 		<PackageReference Include="OpenCvSharp4.Windows" Version="4.7.0.20230115" />
-		<PackageReference Include="RatStash" Version="4.3.0" />
+		<PackageReference Include="RatStash" Version="5.0.0" />
 		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 		<PackageReference Include="Tesseract" Version="5.2.0" />
 		<PackageReference Include="Tesseract.Drawing" Version="5.2.0" />
