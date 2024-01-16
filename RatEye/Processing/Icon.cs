@@ -256,9 +256,9 @@ namespace RatEye.Processing
 		/// <returns>Slot size of the icon</returns>
 		private Vector2 IconSlotSize()
 		{
-			// Add 8 to pixels as buffer in case the item is detected a few pixels to small
-			var x = (Size.X + 8) / ProcessingConfig.ScaledSlotSize;
-			var y = (Size.Y + 8) / ProcessingConfig.ScaledSlotSize;
+			// Use converter class to round to nearest int instead of always rounding down
+			var x = (Size.X - 1) / ProcessingConfig.ScaledSlotSize;
+			var y = (Size.Y - 1) / ProcessingConfig.ScaledSlotSize;
 			return new Vector2((int)x, (int)y);
 		}
 		/// <summary>

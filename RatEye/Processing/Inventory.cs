@@ -438,6 +438,13 @@ namespace RatEye.Processing
 				var bb = _boundingBoxes[i];
 				if (!bb.Contains(position)) continue;
 
+				// Compensate more in height as the top and bottom text often interfere
+				var scaledSlotSize = (int)_config.ProcessingConfig.ScaledSlotSize;
+				bb.X -= scaledSlotSize / 8;
+				bb.Y -= scaledSlotSize / 4;
+				bb.Width += scaledSlotSize / 4;
+				bb.Height += scaledSlotSize / 2;
+
 				if (Config.LogDebug)
 				{
 					using var debugMat = _image.Clone();
