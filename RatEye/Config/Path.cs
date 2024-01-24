@@ -38,6 +38,11 @@ namespace RatEye
 
 			/// <summary>
 			/// Path of the folder containing static icons
+			/// The icons must have their item-id as file name and be of the .png format
+			/// For example the correct file name for the RAM item icon would be:
+			/// <code>
+			/// 57347baf24597738002c6178.png
+			/// </code>
 			/// </summary>
 			public string StaticIcons = Combine(DataDir, "name");
 
@@ -45,20 +50,6 @@ namespace RatEye
 			/// Path of the folder containing dynamic icons
 			/// </summary>
 			public string DynamicIcons = Combine(GetEfTTempPath(), "Icon Cache");
-
-			/// <summary>
-			/// Path of the file containing correlation data for icons and uid's.
-			/// The file must be a json file with the following content:
-			/// <code>
-			/// [
-			///		{
-			///			"icon": "item_ram_module.png",
-			///			"uid": "57347baf24597738002c6178"
-			///		}, ...
-			/// ]
-			/// </code>
-			/// </summary>
-			public string StaticCorrelationData = Combine(DataDir, "correlation.json");
 
 			/// <summary>
 			/// Path of the file containing correlation data for icons and uid's.
@@ -134,7 +125,6 @@ namespace RatEye
 					CacheDir,
 					StaticIcons,
 					DynamicIcons,
-					StaticCorrelationData,
 					DynamicCorrelationData,
 					UnknownIcon,
 					TrainedData,

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using RatEye.Properties;
@@ -349,23 +348,22 @@ namespace RatEye
 
 		private void LoadStaticCorrelationData()
 		{
-			var path = _config.PathConfig.StaticCorrelationData;
-			var correlations = JArray.Parse(ReadFileNonBlocking(path));
-
 			var correlationData = new Dictionary<string, Item>();
-			foreach (var jToken in correlations)
+
+			var iconPathArray = Directory.GetFiles(_config.PathConfig.StaticIcons, "*.png");
+			foreach (var iconPath in iconPathArray)
 			{
-				var correlation = (JObject)jToken;
-				var iconPath = correlation.GetValue("icon")?.ToString();
-				var uid = correlation.GetValue("uid")?.ToString();
+				var itemId = System.IO.Path.GetFileNameWithoutExtension(iconPath);
+				var item = _config.RatStashDB.GetItem(itemId);
 
 				// Filter out items which are not in the item database
-				if (_config.RatStashDB.GetItem(uid) == null) continue;
+				if (item == null) continue;
 
 				// Add the item to the correlation data
 				var iconKey = GetIconKey(iconPath, IconType.Static);
-				correlationData[iconKey] = _config.RatStashDB.GetItem(uid);
+				correlationData[iconKey] = item;
 			}
+
 
 			_staticCorrelationDataLock.EnterWriteLock();
 			try { _staticCorrelationData = correlationData; }
@@ -390,7 +388,7 @@ namespace RatEye
 				IconType.Static => _config.PathConfig.StaticIcons,
 				IconType.Dynamic => _config.PathConfig.DynamicIcons,
 			};
-			return Path.Combine(basePath, Path.GetFileName(iconPath));
+			return System.IO.Path.Combine(basePath, System.IO.Path.GetFileName(iconPath));
 		}
 
 		/// <summary>

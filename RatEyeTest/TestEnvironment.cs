@@ -29,7 +29,6 @@ namespace RatEyeTest
 				PathConfig = new Config.Path()
 				{
 					StaticIcons = "Data/Icons",
-					StaticCorrelationData = "Data/Icons/correlation.json",
 				},
 				ProcessingConfig = new Config.Processing()
 				{
